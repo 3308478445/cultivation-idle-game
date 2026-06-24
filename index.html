@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修仙放置 v0.2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold: #FFD700;
+            --blue: #4A90E2;
+            --purple: #9B59B6;
+            --red: #E74C3C;
+            --green: #2ECC71;
+            --cyan: #00CED1;
+            --orange: #FF8C00;
+            --bg-dark: #1a1a2e;
+            --bg-card: #16213e;
+            --bg-lighter: #1e2a4a;
+            --text-primary: #eee;
+            --text-secondary: #aaa;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #0f0f23 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            max-width: 520px;
+            width: 100%;
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 顶部标签页 */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .tab.active {
+            background: linear-gradient(45deg, var(--blue), var(--purple));
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 28px;
+            background: linear-gradient(45deg, var(--gold), #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .realm-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: linear-gradient(45deg, var(--purple), var(--blue));
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .stat-value.gold { color: var(--gold); }
+        .stat-value.blue { color: var(--blue); }
+        .stat-value.green { color: var(--green); }
+        .stat-value.purple { color: var(--purple); }
+
+        .progress-section {
+            margin-bottom: 20px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            height: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--blue), var(--purple));
+            transition: width 0.3s ease;
+            border-radius: 12px;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-cultivate {
+            background: linear-gradient(45deg, var(--blue), var(--purple));
+            color: white;
+        }
+
+        .btn-cultivate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(74, 144, 226, 0.3);
+        }
+
+        .btn-breakthrough {
+            background: linear-gradient(45deg, var(--gold), #FFA500);
+            color: #333;
+        }
+
+        .btn-breakthrough:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255, 215, 0, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .info-title {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .info-item span:first-child {
+            color: var(--text-secondary);
+        }
+
+        .auto-cultivate-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .toggle-switch {
+            width: 48px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: var(--blue);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(24px);
+        }
+
+        .message {
+            text-align: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 14px;
+        }
+
+        .message.success { color: var(--green); }
+        .message.fail { color: var(--red); }
+
+        /* 功法系统 */
+        .skills-section {
+            margin-top: 14px;
+        }
+
+        .skill-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .skill-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .skill-card.equipped {
+            border-color: var(--purple);
+            background: rgba(155, 89, 182, 0.1);
+        }
+
+        .skill-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .skill-name {
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .skill-type {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: var(--purple);
+        }
+
+        .skill-effect {
+            font-size: 13px;
+            color: var(--green);
+            margin-bottom: 4px;
+        }
+
+        .skill-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .skill-cost {
+            font-size: 12px;
+            color: var(--gold);
+            margin-top: 6px;
+        }
+
+        /* 丹药系统 */
+        .pills-section {
+            margin-top: 14px;
+        }
+
+        .pill-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pill-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .pill-card:active {
+            transform: scale(0.98);
+        }
+
+        .pill-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .pill-name {
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .pill-count {
+            font-size: 14px;
+            color: var(--cyan);
+        }
+
+        .pill-effect {
+            font-size: 13px;
+            color: var(--green);
+            margin-bottom: 4px;
+        }
+
+        .pill-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* 背包系统 */
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .inventory-slot {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .inventory-slot:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .inventory-slot.empty {
+            opacity: 0.5;
+        }
+
+        .inventory-slot .icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .inventory-slot .count {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            font-size: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 1px 4px;
+            border-radius: 4px;
+        }
+
+        .floating-text {
+            position: fixed;
+            pointer-events: none;
+            font-size: 16px;
+            font-weight: bold;
+            animation: floatUp 1s ease-out forwards;
+            z-index: 1000;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+
+        /* 商店 */
+        .shop-section {
+            margin-top: 14px;
+        }
+
+        .shop-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .shop-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .shop-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .shop-item-name {
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .shop-item-price {
+            font-size: 14px;
+            color: var(--gold);
+        }
+
+        .shop-item-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- 标签页 -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('main')">修炼</div>
+            <div class="tab" onclick="switchTab('skills')">功法</div>
+            <div class="tab" onclick="switchTab('pills')">丹药</div>
+            <div class="tab" onclick="switchTab('shop')">商店</div>
+        </div>
+
+        <!-- 主界面 -->
+        <div id="main-tab" class="tab-content active">
+            <div class="header">
+                <h1 class="title">修仙放置</h1>
+                <div class="realm-badge" id="realmBadge">练气期</div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">修为</div>
+                    <div class="stat-value gold" id="cultivationValue">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">灵气</div>
+                    <div class="stat-value blue" id="spiritValue">100</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">资质</div>
+                    <div class="stat-value green" id="talentValue">1.0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">悟性</div>
+                    <div class="stat-value purple" id="comprehensionValue">1.0</div>
+                </div>
+            </div>
+
+            <div class="progress-section">
+                <div class="progress-header">
+                    <span>修为进度</span>
+                    <span id="progressText">0 / 1,000</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    <div class="progress-text" id="progressPercent">0%</div>
+                </div>
+            </div>
+
+            <div class="auto-cultivate-toggle">
+                <span>自动修炼</span>
+                <div class="toggle-switch" id="autoToggle" onclick="toggleAutoCultivate()"></div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-cultivate" onclick="cultivate()">
+                    修炼
+                </button>
+                <button class="btn btn-breakthrough" id="breakthroughBtn" onclick="attemptBreakthrough()" disabled>
+                    突破
+                </button>
+            </div>
+
+            <div class="info-section">
+                <div class="info-title">
+                    <span>修炼信息</span>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span>修炼速度:</span>
+                        <span id="cultivationSpeed">10/秒</span>
+                    </div>
+                    <div class="info-item">
+                        <span>灵气恢复:</span>
+                        <span id="spiritRecovery">5/秒</span>
+                    </div>
+                    <div class="info-item">
+                        <span>灵石:</span>
+                        <span id="spiritStones">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span>道心:</span>
+                        <span id="daoHeart">+0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="message" id="messageBox">
+                点击"修炼"开始你的修仙之路
+            </div>
+        </div>
+
+        <!-- 功法界面 -->
+        <div id="skills-tab" class="tab-content">
+            <div class="header">
+                <h2 class="title" style="font-size: 24px;">功法阁</h2>
+                <p style="font-size: 14px; color: var(--text-secondary);">当前槽位: <span id="skillSlots">0/3</span></p>
+            </div>
+
+            <div class="skills-section" id="skillsList">
+                <!-- 功法列表 -->
+            </div>
+        </div>
+
+        <!-- 丹药界面 -->
+        <div id="pills-tab" class="tab-content">
+            <div class="header">
+                <h2 class="title" style="font-size: 24px;">丹药阁</h2>
+                <p style="font-size: 14px; color: var(--text-secondary);">丹药可以临时或永久提升属性</p>
+            </div>
+
+            <div class="pills-section" id="pillsList">
+                <!-- 丹药列表 -->
+            </div>
+        </div>
+
+        <!-- 商店界面 -->
+        <div id="shop-tab" class="tab-content">
+            <div class="header">
+                <h2 class="title" style="font-size: 24px;">灵石商店</h2>
+                <p style="font-size: 14px; color: var(--text-secondary);">灵石: <span id="shopSpiritStones">0</span></p>
+            </div>
+
+            <div class="shop-section" id="shopList">
+                <!-- 商店列表 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏配置
+        const REALMS = [
+            { id: 1, name: '练气期', requiredCultivation: 0, speedMultiplier: 1.0, skillSlots: 1 },
+            { id: 2, name: '筑基期', requiredCultivation: 1000, speedMultiplier: 1.5, skillSlots: 2 },
+            { id: 3, name: '金丹期', requiredCultivation: 5000, speedMultiplier: 2.0, skillSlots: 3 },
+            { id: 4, name: '元婴期', requiredCultivation: 25000, speedMultiplier: 3.0, skillSlots: 4 },
+            { id: 5, name: '化神期', requiredCultivation: 100000, speedMultiplier: 5.0, skillSlots: 5 }
+        ];
+
+        const SKILLS = [
+            { id: 1, name: '吐纳术', type: '被动', effect: '修炼速度+10%', multiplier: 1.1, cost: 100, desc: '最基础的吐纳之法，引导天地灵气入体' },
+            { id: 2, name: '引气诀', type: '被动', effect: '修炼速度+20%', multiplier: 1.2, cost: 300, desc: '引导灵气更快融入经脉' },
+            { id: 3, name: '聚灵术', type: '被动', effect: '修炼速度+30%', multiplier: 1.3, cost: 800, desc: '在周围形成小型聚灵阵' },
+            { id: 4, name: '灵台清明', type: '被动', effect: '悟性+0.2', comprehensionBonus: 0.2, cost: 500, desc: '保持灵台清明，提升悟性' },
+            { id: 5, name: '炼体诀', type: '被动', effect: '资质+0.1', talentBonus: 0.1, cost: 600, desc: '锻炼肉身，提升资质' }
+        ];
+
+        const PILLS = [
+            { id: 1, name: '聚气丹', effect: '修为+100', cultivationBonus: 100, cost: 50, desc: '蕴含纯净灵气的丹药' },
+            { id: 2, name: '凝神丹', effect: '悟性临时+0.5(5分钟)', tempComprehension: 0.5, duration: 300, cost: 100, desc: '短暂提升悟性的丹药' },
+            { id: 3, name: '洗髓丹', effect: '资质永久+0.05', permanentTalent: 0.05, cost: 500, desc: '洗精伐髓，提升先天资质' },
+            { id: 4, name: '筑基丹', effect: '突破成功率+10%', breakthroughBonus: 10, cost: 200, desc: '辅助筑基的珍贵丹药' },
+            { id: 5, name: '悟道茶', effect: '修为+500', cultivationBonus: 500, cost: 300, desc: '品茶悟道，灵气充盈' }
+        ];
+
+        const SHOP_ITEMS = [
+            { id: 1, name: '聚气丹', price: 50, type: 'pill', itemId: 1, desc: '修为+100' },
+            { id: 2, name: '吐纳术', price: 100, type: 'skill', itemId: 1, desc: '修炼速度+10%' },
+            { id: 3, name: '凝神丹', price: 100, type: 'pill', itemId: 2, desc: '悟性临时+0.5' },
+            { id: 4, name: '筑基丹', price: 200, type: 'pill', itemId: 4, desc: '突破成功率+10%' },
+            { id: 5, name: '引气诀', price: 300, type: 'skill', itemId: 2, desc: '修炼速度+20%' }
+        ];
+
+        // 玩家数据
+        let playerData = {
+            realm: 1,
+            cultivation: 0,
+            spirit: 100,
+            maxSpirit: 100,
+            talent: 1.0,
+            comprehension: 1.0,
+            spiritStones: 0,
+            failedBreakthroughs: 0,
+            lastOnlineTime: Date.now(),
+            autoCultivate: false,
+            equippedSkills: [],
+            ownedSkills: [],
+            inventory: {}, // { pillId: count }
+            tempBuffs: {
+                comprehension: 0,
+                breakthrough: 0
+            }
+        };
+
+        let gameInterval = null;
+
+        // 初始化
+        function init() {
+            loadGame();
+            updateUI();
+            renderSkills();
+            renderPills();
+            renderShop();
+            calculateOfflineReward();
+            startGameLoop();
+        }
+
+        // 切换标签页
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            if (tabName === 'skills') renderSkills();
+            if (tabName === 'pills') renderPills();
+            if (tabName === 'shop') renderShop();
+        }
+
+        // 游戏主循环
+        function startGameLoop() {
+            if (gameInterval) clearInterval(gameInterval);
+            
+            gameInterval = setInterval(() => {
+                // 灵气恢复
+                if (playerData.spirit < playerData.maxSpirit) {
+                    playerData.spirit = Math.min(
+                        playerData.maxSpirit,
+                        playerData.spirit + getSpiritRecovery()
+                    );
+                }
+
+                // 自动修炼
+                if (playerData.autoCultivate && playerData.realm >= 2) {
+                    cultivateTick();
+                }
+
+                // 检查临时buff过期
+                checkTempBuffs();
+
+                updateUI();
+                saveGame();
+            }, 1000);
+        }
+
+        // 修炼
+        function cultivate() {
+            if (playerData.spirit < 1) {
+                showMessage('灵气不足！', 'fail');
+                return;
+            }
+
+            cultivateTick();
+            const gain = getCultivationGain();
+            createFloatingText(`+${formatNumber(gain)}`, 'gold');
+        }
+
+        function cultivateTick() {
+            const gain = getCultivationGain();
+            playerData.cultivation += gain;
+            playerData.spirit = Math.max(0, playerData.spirit - getSpiritCost());
+            
+            checkBreakthroughAvailability();
+        }
+
+        // 获取修为增益（包含功法加成）
+        function getCultivationGain() {
+            const baseRate = 10;
+            const realmBonus = REALMS[playerData.realm - 1].speedMultiplier;
+            
+            // 功法加成
+            let skillMultiplier = 1.0;
+            playerData.equippedSkills.forEach(skillId => {
+                const skill = SKILLS.find(s => s.id === skillId);
+                if (skill && skill.multiplier) {
+                    skillMultiplier *= skill.multiplier;
+                }
+            });
+            
+            // 资质加成（包含永久提升）
+            let totalTalent = playerData.talent;
+            playerData.equippedSkills.forEach(skillId => {
+                const skill = SKILLS.find(s => s.id === skillId);
+                if (skill && skill.talentBonus) {
+                    totalTalent += skill.talentBonus;
+                }
+            });
+
+            return Math.floor(baseRate * realmBonus * skillMultiplier * totalTalent);
+        }
+
+        // 获取悟性（包含功法和临时buff）
+        function getTotalComprehension() {
+            let total = playerData.comprehension;
+            
+            // 功法加成
+            playerData.equippedSkills.forEach(skillId => {
+                const skill = SKILLS.find(s => s.id === skillId);
+                if (skill && skill.comprehensionBonus) {
+                    total += skill.comprehensionBonus;
+                }
+            });
+            
+            // 临时buff
+            total += playerData.tempBuffs.comprehension;
+            
+            return total;
+        }
+
+        function getSpiritCost() {
+            return playerData.realm;
+        }
+
+        function getSpiritRecovery() {
+            return 5 + playerData.realm;
+        }
+
+        // 突破
+        function attemptBreakthrough() {
+            const nextRealm = REALMS[playerData.realm];
+
+            if (!nextRealm || playerData.cultivation < nextRealm.requiredCultivation) {
+                showMessage('修为不足！', 'fail');
+                return;
+            }
+
+            const successRate = calculateBreakthroughSuccessRate();
+            const isSuccess = Math.random() * 100 < successRate;
+
+            if (isSuccess) {
+                playerData.realm++;
+                playerData.cultivation = 0;
+                playerData.failedBreakthroughs = 0;
+                playerData.maxSpirit = 100 + playerData.realm * 10;
+                
+                showMessage(`恭喜突破至 ${REALMS[playerData.realm - 1].name}！`, 'success');
+                createFloatingText('突破成功！', 'purple');
+                
+                playerData.spiritStones += playerData.realm * 100;
+            } else {
+                playerData.cultivation = Math.floor(playerData.cultivation * 0.8);
+                playerData.failedBreakthroughs++;
+                
+                showMessage(`突破失败！损失20%修为，道心+5%`, 'fail');
+                createFloatingText('突破失败', 'red');
+            }
+
+            updateUI();
+            saveGame();
+        }
+
+        function calculateBreakthroughSuccessRate() {
+            const baseRate = 50;
+            const realmPenalty = playerData.realm * 5;
+            const comprehensionBonus = getTotalComprehension() * 10;
+            const daoHeartBonus = playerData.failedBreakthroughs * 5;
+            const pillBonus = playerData.tempBuffs.breakthrough;
+
+            const rate = baseRate - realmPenalty + comprehensionBonus + daoHeartBonus + pillBonus;
+            return Math.max(10, Math.min(90, rate));
+        }
+
+        // 功法系统
+        function renderSkills() {
+            const container = document.getElementById('skillsList');
+            const maxSlots = REALMS[playerData.realm - 1].skillSlots;
+            
+            document.getElementById('skillSlots').textContent = 
+                `${playerData.equippedSkills.length}/${maxSlots}`;
+
+            container.innerHTML = SKILLS.map(skill => {
+                const owned = playerData.ownedSkills.includes(skill.id);
+                const equipped = playerData.equippedSkills.includes(skill.id);
+                const canEquip = owned && !equipped && playerData.equippedSkills.length < maxSlots;
+                
+                return `
+                    <div class="skill-card ${equipped ? 'equipped' : ''}" 
+                         onclick="${owned ? `toggleSkill(${skill.id})` : `buySkill(${skill.id})`}">
+                        <div class="skill-header">
+                            <span class="skill-name">${skill.name}</span>
+                            <span class="skill-type">${skill.type}</span>
+                        </div>
+                        <div class="skill-effect">${skill.effect}</div>
+                        <div class="skill-desc">${skill.desc}</div>
+                        ${!owned ? `<div class="skill-cost">购买: ${skill.cost} 灵石</div>` : 
+                          (equipped ? '<div style="color: var(--green); font-size: 12px; margin-top: 6px;">已装备</div>' :
+                           '<div style="color: var(--text-secondary); font-size: 12px; margin-top: 6px;">点击装备</div>')}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function buySkill(skillId) {
+            const skill = SKILLS.find(s => s.id === skillId);
+            if (!skill || playerData.ownedSkills.includes(skillId)) return;
+            
+            if (playerData.spiritStones < skill.cost) {
+                showMessage('灵石不足！', 'fail');
+                return;
+            }
+            
+            playerData.spiritStones -= skill.cost;
+            playerData.ownedSkills.push(skillId);
+            
+            showMessage(`习得《${skill.name}》！`, 'success');
+            createFloatingText('习得功法！', 'purple');
+            
+            updateUI();
+            renderSkills();
+            saveGame();
+        }
+
+        function toggleSkill(skillId) {
+            const maxSlots = REALMS[playerData.realm - 1].skillSlots;
+            const index = playerData.equippedSkills.indexOf(skillId);
+            
+            if (index > -1) {
+                playerData.equippedSkills.splice(index, 1);
+            } else if (playerData.equippedSkills.length < maxSlots) {
+                playerData.equippedSkills.push(skillId);
+            }
+            
+            renderSkills();
+            saveGame();
+        }
+
+        // 丹药系统
+        function renderPills() {
+            const container = document.getElementById('pillsList');
+            
+            container.innerHTML = PILLS.map(pill => {
+                const count = playerData.inventory[pill.id] || 0;
+                
+                return `
+                    <div class="pill-card ${count === 0 ? 'empty' : ''}" 
+                         onclick="${count > 0 ? `usePill(${pill.id})` : ''}">
+                        <div class="pill-header">
+                            <span class="pill-name">${pill.name}</span>
+                            <span class="pill-count">×${count}</span>
+                        </div>
+                        <div class="pill-effect">${pill.effect}</div>
+                        <div class="pill-desc">${pill.desc}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function usePill(pillId) {
+            const pill = PILLS.find(p => p.id === pillId);
+            if (!pill || !playerData.inventory[pillId]) return;
+            
+            playerData.inventory[pillId]--;
+            
+            // 应用效果
+            if (pill.cultivationBonus) {
+                playerData.cultivation += pill.cultivationBonus;
+                createFloatingText(`+${pill.cultivationBonus} 修为`, 'gold');
+            }
+            
+            if (pill.tempComprehension) {
+                playerData.tempBuffs.comprehension += pill.tempComprehension;
+                setTimeout(() => {
+                    playerData.tempBuffs.comprehension -= pill.tempComprehension;
+                    updateUI();
+                }, pill.duration * 1000);
+                showMessage(`悟性临时提升${pill.tempComprehension}，持续${Math.floor(pill.duration / 60)}分钟`, 'success');
+            }
+            
+            if (pill.permanentTalent) {
+                playerData.talent += pill.permanentTalent;
+                showMessage(`资质永久提升${pill.permanentTalent}！`, 'success');
+                createFloatingText('资质提升！', 'green');
+            }
+            
+            if (pill.breakthroughBonus) {
+                playerData.tempBuffs.breakthrough += pill.breakthroughBonus;
+                showMessage(`下一次突破成功率+${pill.breakthroughBonus}%`, 'success');
+            }
+            
+            updateUI();
+            renderPills();
+            saveGame();
+        }
+
+        // 商店系统
+        function renderShop() {
+            const container = document.getElementById('shopList');
+            
+            document.getElementById('shopSpiritStones').textContent = formatNumber(playerData.spiritStones);
+            
+            container.innerHTML = SHOP_ITEMS.map(item => {
+                return `
+                    <div class="shop-item" onclick="buyShopItem(${item.id})">
+                        <div class="shop-item-header">
+                            <span class="shop-item-name">${item.name}</span>
+                            <span class="shop-item-price">${item.price} 灵石</span>
+                        </div>
+                        <div class="shop-item-desc">${item.desc}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function buyShopItem(itemId) {
+            const item = SHOP_ITEMS.find(i => i.id === itemId);
+            if (!item) return;
+            
+            if (playerData.spiritStones < item.price) {
+                showMessage('灵石不足！', 'fail');
+                return;
+            }
+            
+            playerData.spiritStones -= item.price;
+            
+            if (item.type === 'pill') {
+                playerData.inventory[item.itemId] = (playerData.inventory[item.itemId] || 0) + 1;
+                showMessage(`购买成功！`, 'success');
+            } else if (item.type === 'skill') {
+                if (!playerData.ownedSkills.includes(item.itemId)) {
+                    playerData.ownedSkills.push(item.itemId);
+                    showMessage(`习得新功法！`, 'success');
+                } else {
+                    showMessage('已拥有该功法，购买失败退款', 'fail');
+                    playerData.spiritStones += item.price;
+                }
+            }
+            
+            updateUI();
+            renderShop();
+            saveGame();
+        }
+
+        // 辅助函数
+        function checkBreakthroughAvailability() {
+            const nextRealm = REALMS[playerData.realm];
+            const btn = document.getElementById('breakthroughBtn');
+            
+            if (nextRealm && playerData.cultivation >= nextRealm.requiredCultivation) {
+                btn.disabled = false;
+            } else {
+                btn.disabled = true;
+            }
+        }
+
+        function checkTempBuffs() {
+            // 临时buff由setTimeout自动清除
+        }
+
+        function toggleAutoCultivate() {
+            if (playerData.realm < 2) {
+                showMessage('筑基期后解锁自动修炼', 'fail');
+                return;
+            }
+
+            playerData.autoCultivate = !playerData.autoCultivate;
+            document.getElementById('autoToggle').classList.toggle('active', playerData.autoCultivate);
+        }
+
+        function updateUI() {
+            document.getElementById('realmBadge').textContent = REALMS[playerData.realm - 1].name;
+            document.getElementById('cultivationValue').textContent = formatNumber(playerData.cultivation);
+            document.getElementById('spiritValue').textContent = `${Math.floor(playerData.spirit)}/${playerData.maxSpirit}`;
+            document.getElementById('talentValue').textContent = playerData.talent.toFixed(2);
+            document.getElementById('comprehensionValue').textContent = getTotalComprehension().toFixed(2);
+
+            const nextRealm = REALMS[playerData.realm];
+            if (nextRealm) {
+                const progress = (playerData.cultivation / nextRealm.requiredCultivation) * 100;
+                document.getElementById('progressFill').style.width = `${Math.min(100, progress)}%`;
+                document.getElementById('progressPercent').textContent = `${Math.min(100, progress).toFixed(1)}%`;
+                document.getElementById('progressText').textContent = 
+                    `${formatNumber(playerData.cultivation)} / ${formatNumber(nextRealm.requiredCultivation)}`;
+            } else {
+                document.getElementById('progressFill').style.width = '100%';
+                document.getElementById('progressPercent').textContent = '已满级';
+                document.getElementById('progressText').textContent = '已达最高境界';
+            }
+
+            document.getElementById('cultivationSpeed').textContent = `${getCultivationGain()}/秒`;
+            document.getElementById('spiritRecovery').textContent = `${getSpiritRecovery()}/秒`;
+            document.getElementById('spiritStones').textContent = formatNumber(playerData.spiritStones);
+            document.getElementById('daoHeart').textContent = `+${playerData.failedBreakthroughs * 5}%`;
+            document.getElementById('autoToggle').classList.toggle('active', playerData.autoCultivate);
+
+            checkBreakthroughAvailability();
+        }
+
+        function calculateOfflineReward() {
+            const now = Date.now();
+            const offlineTime = Math.min(24 * 60 * 60 * 1000, now - playerData.lastOnlineTime);
+            const offlineSeconds = Math.floor(offlineTime / 1000);
+
+            if (offlineSeconds > 60) {
+                const offlineGain = Math.floor(getCultivationGain() * offlineSeconds * 0.5);
+                playerData.cultivation += offlineGain;
+                
+                showMessage(`离线${formatTime(offlineSeconds)}，获得${formatNumber(offlineGain)}修为`, 'success');
+            }
+
+            playerData.lastOnlineTime = now;
+        }
+
+        function showMessage(text, type = '') {
+            const box = document.getElementById('messageBox');
+            box.textContent = text;
+            box.className = 'message ' + type;
+        }
+
+        function createFloatingText(text, color = 'gold') {
+            const el = document.createElement('div');
+            el.className = 'floating-text';
+            el.textContent = text;
+            el.style.color = color === 'gold' ? '#FFD700' : 
+                            color === 'purple' ? '#9B59B6' : 
+                            color === 'green' ? '#2ECC71' : '#E74C3C';
+            el.style.left = Math.random() * 300 + 100 + 'px';
+            el.style.top = '300px';
+            document.body.appendChild(el);
+
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        function formatNumber(num) {
+            if (num >= 10000) {
+                return (num / 10000).toFixed(1) + '万';
+            }
+            return num.toLocaleString();
+        }
+
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            if (h > 0) return `${h}小时${m}分钟`;
+            return `${m}分钟`;
+        }
+
+        function saveGame() {
+            playerData.lastOnlineTime = Date.now();
+            localStorage.setItem('cultivationGame', JSON.stringify(playerData));
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('cultivationGame');
+            if (saved) {
+                const loaded = JSON.parse(saved);
+                playerData = { ...playerData, ...loaded };
+                
+                // 版本兼容
+                if (!playerData.inventory) playerData.inventory = {};
+                if (!playerData.tempBuffs) playerData.tempBuffs = { comprehension: 0, breakthrough: 0 };
+            }
+        }
+
+        // 启动游戏
+        init();
+    </script>
+</body>
+</html>
