@@ -1173,6 +1173,277 @@
             text-align: center;
             padding: 20px;
         }
+
+        /* ==================== 移动端适配 ==================== */
+        @media screen and (max-width: 520px) {
+            /* 根容器调整 */
+            body {
+                padding: 0;
+                align-items: flex-start;
+                min-height: 100vh;
+            }
+
+            .game-container {
+                max-width: 100%;
+                width: 100%;
+                border-radius: 0;
+                padding: 12px;
+                min-height: 100vh;
+                box-shadow: none;
+            }
+
+            /* 标签栏横向滚动 */
+            .tabs {
+                display: flex;
+                gap: 4px;
+                margin-bottom: 16px;
+                padding: 4px;
+                overflow-x: auto;
+                white-space: nowrap;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none; /* Firefox */
+            }
+
+            .tabs::-webkit-scrollbar {
+                display: none; /* Chrome/Safari */
+            }
+
+            .tab {
+                flex: 0 0 auto;
+                padding: 8px 12px;
+                font-size: 13px;
+                min-width: 50px;
+            }
+
+            /* 标题调整 */
+            .title {
+                font-size: 22px;
+            }
+
+            /* 统计卡片网格 */
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+
+            .stat-card {
+                padding: 10px;
+            }
+
+            .stat-value {
+                font-size: 18px;
+            }
+
+            /* 按钮优化 */
+            .action-buttons {
+                gap: 8px;
+            }
+
+            .btn {
+                padding: 14px 12px;
+                font-size: 14px;
+                min-height: 48px;
+            }
+
+            /* 信息区域 */
+            .info-section {
+                padding: 12px;
+                margin-bottom: 12px;
+            }
+
+            .info-grid {
+                font-size: 12px;
+            }
+
+            /* 进度条 */
+            .progress-bar {
+                height: 20px;
+            }
+
+            .progress-text {
+                font-size: 11px;
+            }
+
+            /* 功法/丹药卡片 */
+            .skill-card,
+            .pill-card {
+                padding: 10px;
+                margin-bottom: 8px;
+            }
+
+            .skill-name,
+            .pill-name {
+                font-size: 14px;
+            }
+
+            /* 商店物品 */
+            .shop-item {
+                padding: 10px;
+                margin-bottom: 8px;
+            }
+
+            /* 仓库格子 */
+            .inventory-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+            }
+
+            .inventory-slot {
+                min-height: 60px;
+            }
+
+            /* 奇遇弹窗 */
+            .encounter-modal-content {
+                padding: 16px;
+                margin: 20px;
+            }
+
+            .encounter-modal-icon {
+                font-size: 48px;
+            }
+
+            .encounter-modal-title {
+                font-size: 18px;
+            }
+
+            /* 宗门/灵兽/洞府 */
+            .sect-info,
+            .beast-card,
+            .cave-upgrade {
+                padding: 10px;
+            }
+
+            /* 存档管理 */
+            .info-section[style*="margin-top"] {
+                margin-top: 12px !important;
+            }
+
+            .info-section[style*="margin-top"] .btn {
+                padding: 12px 10px;
+                font-size: 13px;
+            }
+
+            /* 剧情列表 */
+            .story-item {
+                padding: 12px;
+            }
+
+            .story-title {
+                font-size: 14px;
+            }
+
+            .story-desc {
+                font-size: 12px;
+            }
+
+            /* 云同步界面 */
+            #cloud-tab .info-section {
+                padding: 12px;
+            }
+
+            #githubToken {
+                font-size: 14px;
+                padding: 12px;
+            }
+
+            /* 滚动优化 */
+            .tab-content {
+                max-height: calc(100vh - 180px);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* 已读剧情列表等可滚动区域 */
+            #storyList,
+            #recentEncounters,
+            #skillsList {
+                max-height: 300px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        /* 极小屏幕（320px以下） */
+        @media screen and (max-width: 360px) {
+            .game-container {
+                padding: 8px;
+            }
+
+            .title {
+                font-size: 20px;
+            }
+
+            .tab {
+                padding: 6px 10px;
+                font-size: 12px;
+                min-width: 44px;
+            }
+
+            .stat-value {
+                font-size: 16px;
+            }
+
+            .btn {
+                padding: 12px 8px;
+                font-size: 13px;
+            }
+
+            .inventory-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* 横屏模式 */
+        @media screen and (max-height: 500px) and (orientation: landscape) {
+            body {
+                padding: 10px;
+                align-items: center;
+            }
+
+            .game-container {
+                max-width: 400px;
+                padding: 16px;
+            }
+
+            .header {
+                margin-bottom: 12px;
+            }
+
+            .title {
+                font-size: 20px;
+                margin-bottom: 4px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .tab-content {
+                max-height: calc(100vh - 120px);
+            }
+        }
+
+        /* 触摸反馈 */
+        @media (hover: none) and (pointer: coarse) {
+            .btn:active {
+                transform: scale(0.98);
+                opacity: 0.9;
+            }
+
+            .tab:active {
+                opacity: 0.8;
+            }
+
+            .skill-card:active,
+            .pill-card:active,
+            .shop-item:active {
+                transform: scale(0.98);
+            }
+
+            .inventory-slot:active {
+                background: rgba(255, 255, 255, 0.15);
+            }
+        }
     </style>
 </head>
 <body>
