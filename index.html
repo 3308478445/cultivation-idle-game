@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>修仙放置游戏 v0.5</title>
+    <title>修仙放置游戏 v0.6</title>
     <style>
         * {
             margin: 0;
@@ -860,6 +860,84 @@
             font-size: 11px;
             color: var(--text-secondary);
         }
+
+        /* 法宝样式 */
+        .artifact-slot {
+            width: 60px;
+            height: 60px;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .artifact-slot:hover {
+            border-color: var(--gold);
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .artifact-slot.equipped {
+            border: 2px solid var(--gold);
+            background: rgba(255, 215, 0, 0.15);
+        }
+
+        .artifact-slot .artifact-icon {
+            font-size: 28px;
+        }
+
+        .artifact-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .artifact-icon {
+            font-size: 32px;
+            width: 48px;
+            text-align: center;
+        }
+
+        .artifact-info {
+            flex: 1;
+        }
+
+        .artifact-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--gold);
+            margin-bottom: 4px;
+        }
+
+        .artifact-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .artifact-stats {
+            font-size: 11px;
+            color: var(--cyan);
+        }
+
+        .artifact-level {
+            font-size: 11px;
+            color: var(--purple);
+        }
+
+        .artifact-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
     </style>
 </head>
 <body>
@@ -873,6 +951,7 @@
             <div class="tab" onclick="switchTab('encounter')">奇遇</div>
             <div class="tab" onclick="switchTab('achievements')">🏆</div>
             <div class="tab" onclick="switchTab('sect')">宗门</div>
+            <div class="tab" onclick="switchTab('artifact')">法宝</div>
         </div>
 
         <!-- 主界面 -->
@@ -1116,6 +1195,49 @@
         </div>
     </div>
 
+    <!-- 法宝界面 -->
+    <div id="artifact-tab" class="tab-content">
+        <div class="header">
+            <h2 class="title" style="font-size: 24px;">⚗️ 法宝系统</h2>
+        </div>
+        
+        <!-- 装备的法宝 -->
+        <div class="info-section">
+            <div class="info-title">🗡️ 已装备法宝</div>
+            <div id="equippedArtifacts" style="display: flex; gap: 10px; flex-wrap: wrap; min-height: 60px; align-items: center; justify-content: center;">
+                <div class="artifact-slot empty-slot">+</div>
+                <div class="artifact-slot empty-slot">+</div>
+                <div class="artifact-slot empty-slot">+</div>
+            </div>
+        </div>
+
+        <!-- 法宝背包 -->
+        <div class="info-section">
+            <div class="info-title">📦 法宝背包</div>
+            <div id="artifactInventory" style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="text-align: center; color: var(--text-secondary); padding: 20px;">暂无法宝</div>
+            </div>
+        </div>
+
+        <!-- 炼器材料 -->
+        <div class="info-section">
+            <div class="info-title">🔩 炼器材料 (升级法宝用)</div>
+            <div id="artifactMaterials" style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+            </div>
+            <div style="font-size: 11px; color: var(--text-secondary); text-align: center;">
+                灵石: <span id="artifactStoneCount">0</span> |
+                <button class="btn btn-small" onclick="buyRandomMaterial()">购买玄铁(50灵石)</button>
+            </div>
+        </div>
+
+        <!-- 法宝商店 -->
+        <div class="info-section">
+            <div class="info-title">🏪 法宝商店</div>
+            <div id="artifactShop" style="display: flex; flex-direction: column; gap: 8px;">
+            </div>
+        </div>
+    </div>
+
     <!-- 奇遇弹窗 -->
     <div id="encounterModal" class="encounter-modal">
         <div class="encounter-modal-content">
@@ -1334,6 +1456,58 @@
               reward: { spiritStones: 100 }, condition: (pd) => pd.stats.totalSpiritStones >= 1000 },
         ];
 
+        // 法宝数据
+        const ARTIFACTS = [
+            // 攻击型法宝
+            { id: 1, name: '青云剑', type: 'attack', icon: '⚔️', rarity: 'rare',
+              desc: '青云门镇派之宝,剑气如虹', 
+              effects: { cultivationBonus: 0.1, attack: 15 },
+              price: 500, upgradeCost: { spiritStones: 200, materials: 5 } },
+            { id: 2, name: '烈焰珠', type: 'attack', icon: '🔥', rarity: 'epic',
+              desc: '蕴含天火之力,焚尽万物',
+              effects: { cultivationBonus: 0.15, attack: 25 },
+              price: 1000, upgradeCost: { spiritStones: 400, materials: 10 } },
+            { id: 3, name: '天魔钟', type: 'attack', icon: '🔔', rarity: 'legend',
+              desc: '天魔宫至宝,魔音贯耳',
+              effects: { cultivationBonus: 0.25, attack: 50 },
+              price: 3000, upgradeCost: { spiritStones: 1000, materials: 25 } },
+            // 防御型法宝
+            { id: 4, name: '玄武甲', type: 'defense', icon: '🛡️', rarity: 'rare',
+              desc: '上古玄武龟甲,坚不可摧',
+              effects: { maxSpiritBonus: 0.2, defense: 10 },
+              price: 400, upgradeCost: { spiritStones: 150, materials: 4 } },
+            { id: 5, name: '金刚罩', type: 'defense', icon: '💎', rarity: 'epic',
+              desc: '佛门金刚法相,万邪不侵',
+              effects: { maxSpiritBonus: 0.35, defense: 20, breakthroughBonus: 0.1 },
+              price: 800, upgradeCost: { spiritStones: 350, materials: 8 } },
+            { id: 6, name: '太极图', type: 'defense', icon: '☯️', rarity: 'legend',
+              desc: '阴阳太极,万物归一',
+              effects: { maxSpiritBonus: 0.5, defense: 40, breakthroughBonus: 0.2 },
+              price: 2500, upgradeCost: { spiritStones: 800, materials: 20 } },
+            // 辅助型法宝
+            { id: 7, name: '聚灵阵', type: 'support', icon: '🔮', rarity: 'rare',
+              desc: '聚集天地灵气,事半功倍',
+              effects: { spiritRegen: 0.2, cultivationBonus: 0.05 },
+              price: 300, upgradeCost: { spiritStones: 100, materials: 3 } },
+            { id: 8, name: '悟道碑', type: 'support', icon: '📜', rarity: 'epic',
+              desc: '记载无上道法,助悟天地',
+              effects: { comprehensionBonus: 0.3, cultivationBonus: 0.1 },
+              price: 700, upgradeCost: { spiritStones: 300, materials: 7 } },
+            { id: 9, name: '东皇钟', type: 'support', icon: '🔔', rarity: 'legend',
+              desc: '上古天庭至宝,时间静止',
+              effects: { cultivationBonus: 0.3, spiritRegen: 0.5, talentBonus: 0.1 },
+              price: 5000, upgradeCost: { spiritStones: 2000, materials: 50 } },
+        ];
+
+        // 炼器材料（用于法宝升级）
+        const ARTIFACT_MATERIALS = [
+            { id: 1, name: '玄铁', icon: '🔩', price: 50, desc: '基础炼器材料' },
+            { id: 2, name: '灵银', icon: '🥈', price: 100, desc: '进阶炼器材料' },
+            { id: 3, name: '天金', icon: '🥇', price: 300, desc: '高级炼器材料' },
+            { id: 4, name: '仙玉', icon: '💠', price: 500, desc: '珍稀炼器材料' },
+            { id: 5, name: '混沌石', icon: '🌌', price: 1000, desc: '传说级材料' },
+        ];
+
         // 待解锁成就队列(用于显示动画)
         let pendingAchievements = [];
 
@@ -1377,7 +1551,12 @@
             sectContrib: 0,         // 宗门贡献
             sectContribToday: 0,    // 今日贡献
             sectDailyTasks: {},     // 每日任务进度 { taskId: count }
-            sectLastResetDate: null // 上次重置日期
+            sectLastResetDate: null, // 上次重置日期
+
+            // 法宝系统数据
+            ownedArtifacts: [],     // 已拥有的法宝 [{ artifactId, level, exp }]
+            equippedArtifacts: [null, null, null], // 装备的法宝 [artifactId or null]
+            materials: {}           // 炼器材料 { materialId: count }
         };
 
         let gameInterval = null;
@@ -1410,6 +1589,7 @@
             if (tabName === 'encounter') renderEncounter();
             if (tabName === 'achievements') renderAchievements();
             if (tabName === 'sect') renderSect();
+            if (tabName === 'artifact') renderArtifact();
         }
 
         // ==================== 成就系统 ====================
@@ -1533,6 +1713,276 @@
                     }).join('')}
                 </div>
             `;
+        }
+
+        // ==================== 法宝系统 ====================
+        
+        // 渲染法宝界面
+        function renderArtifact() {
+            renderEquippedArtifacts();
+            renderArtifactInventory();
+            renderArtifactMaterials();
+            renderArtifactShop();
+        }
+
+        // 渲染炼器材料
+        function renderArtifactMaterials() {
+            const container = document.getElementById('artifactMaterials');
+            document.getElementById('artifactStoneCount').textContent = playerData.spiritStones;
+            let html = '';
+            ARTIFACT_MATERIALS.forEach(m => {
+                const count = playerData.materials[m.id] || 0;
+                html += `<div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 8px; text-align: center; min-width: 55px;">
+                    <div style="font-size: 20px;">${m.icon}</div>
+                    <div style="font-size: 10px; color: var(--text-secondary);">${m.name}</div>
+                    <div style="font-size: 11px; color: var(--cyan);">x${count}</div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        // 购买随机炼器材料
+        function buyRandomMaterial() {
+            const cost = 50;
+            if (playerData.spiritStones < cost) {
+                showToast('灵石不足!');
+                return;
+            }
+            // 随机给一种材料
+            const weights = [50, 30, 15, 4, 1]; // 玄铁50%,灵银30%,天金15%,仙玉4%,混沌石1%
+            const total = weights.reduce((a, b) => a + b, 0);
+            let rand = Math.random() * total;
+            let materialId = 1;
+            for (let i = 0; i < weights.length; i++) {
+                rand -= weights[i];
+                if (rand <= 0) {
+                    materialId = i + 1;
+                    break;
+                }
+            }
+            const material = ARTIFACT_MATERIALS.find(m => m.id === materialId);
+            playerData.spiritStones -= cost;
+            playerData.materials[materialId] = (playerData.materials[materialId] || 0) + 1;
+            showToast(`花费50灵石,获得 ${material.icon} ${material.name}!`);
+            renderArtifactMaterials();
+            updateUI();
+        }
+
+        // 渲染已装备法宝
+        function renderEquippedArtifacts() {
+            const container = document.getElementById('equippedArtifacts');
+            let html = '';
+            for (let i = 0; i < 3; i++) {
+                const artifactId = playerData.equippedArtifacts[i];
+                if (artifactId !== null) {
+                    const artifact = ARTIFACTS.find(a => a.id === artifactId);
+                    const owned = playerData.ownedArtifacts.find(o => o.artifactId === artifactId);
+                    const level = owned ? owned.level : 1;
+                    html += `<div class="artifact-slot equipped" onclick="unequipArtifact(${i})">
+                        <div class="artifact-icon">${artifact.icon}</div>
+                        <div style="font-size:10px;color:var(--gold);">Lv.${level}</div>
+                    </div>`;
+                } else {
+                    html += `<div class="artifact-slot empty-slot" onclick="selectArtifactToEquip(${i})">+</div>`;
+                }
+            }
+            container.innerHTML = html;
+        }
+
+        // 选择法宝装备
+        function selectArtifactToEquip(slot) {
+            if (playerData.ownedArtifacts.length === 0) {
+                showToast('你还没有法宝,先去商店购买吧!');
+                return;
+            }
+            // 过滤掉已装备的
+            const available = playerData.ownedArtifacts.filter(o => 
+                !playerData.equippedArtifacts.includes(o.artifactId)
+            );
+            if (available.length === 0) {
+                showToast('所有法宝都已装备!');
+                return;
+            }
+            let options = available.map(o => {
+                const a = ARTIFACTS.find(art => art.id === o.artifactId);
+                return `${a.icon} ${a.name} (Lv.${o.level})`;
+            }).join('\n');
+            let choice = prompt(`选择要装备的法宝:\n${options}\n\n输入序号(1-${available.length}):`);
+            if (choice) {
+                const idx = parseInt(choice) - 1;
+                if (idx >= 0 && idx < available.length) {
+                    playerData.equippedArtifacts[slot] = available[idx].artifactId;
+                    showToast(`已装备 ${ARTIFACTS.find(a => a.id === available[idx].artifactId).name}!`);
+                    renderEquippedArtifacts();
+                    updateUI();
+                }
+            }
+        }
+
+        // 卸下法宝
+        function unequipArtifact(slot) {
+            const artifactId = playerData.equippedArtifacts[slot];
+            if (artifactId !== null) {
+                const artifact = ARTIFACTS.find(a => a.id === artifactId);
+                playerData.equippedArtifacts[slot] = null;
+                showToast(`已卸下 ${artifact.name}`);
+                renderEquippedArtifacts();
+                updateUI();
+            }
+        }
+
+        // 渲染法宝背包
+        function renderArtifactInventory() {
+            const container = document.getElementById('artifactInventory');
+            if (playerData.ownedArtifacts.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">暂无法宝</div>';
+                return;
+            }
+            let html = '';
+            playerData.ownedArtifacts.forEach(owned => {
+                const artifact = ARTIFACTS.find(a => a.id === owned.artifactId);
+                const isEquipped = playerData.equippedArtifacts.includes(owned.artifactId);
+                const upgradeCost = getArtifactUpgradeCost(artifact, owned.level);
+                html += `<div class="artifact-card">
+                    <div class="artifact-icon">${artifact.icon}</div>
+                    <div class="artifact-info">
+                        <div class="artifact-name">${artifact.name}</div>
+                        <div class="artifact-desc">${artifact.desc}</div>
+                        <div class="artifact-stats">修炼加成: +${Math.round(getArtifactCultivationBonus() * 100)}%</div>
+                        <div class="artifact-level">等级: ${owned.level} ${isEquipped ? '【已装备】' : ''}</div>
+                    </div>
+                    <div class="artifact-actions">
+                        ${owned.level < 10 ? `
+                        <button class="btn btn-small" onclick="upgradeArtifact(${artifact.id})"
+                            ${playerData.spiritStones >= upgradeCost.spiritStones && (playerData.materials[1] || 0) >= upgradeCost.materials ? '' : 'disabled'}>
+                            升级
+                        </button>
+                        ` : '<span style="font-size:11px;color:var(--gold);">满级</span>'}
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        // 获取法宝升级消耗
+        function getArtifactUpgradeCost(artifact, level) {
+            const multiplier = Math.pow(1.5, level - 1);
+            return {
+                spiritStones: Math.floor(artifact.upgradeCost.spiritStones * multiplier),
+                materials: Math.floor(artifact.upgradeCost.materials * multiplier)
+            };
+        }
+
+        // 获取法宝总修炼加成
+        function getArtifactCultivationBonus() {
+            let bonus = 0;
+            playerData.equippedArtifacts.forEach(id => {
+                if (id !== null) {
+                    const owned = playerData.ownedArtifacts.find(o => o.artifactId === id);
+                    if (owned) {
+                        const artifact = ARTIFACTS.find(a => a.id === id);
+                        const levelBonus = artifact.effects.cultivationBonus * (1 + (owned.level - 1) * 0.1);
+                        bonus += levelBonus;
+                    }
+                }
+            });
+            return bonus;
+        }
+
+        // 升级法宝
+        function upgradeArtifact(artifactId) {
+            const owned = playerData.ownedArtifacts.find(o => o.artifactId === artifactId);
+            if (!owned) return;
+            if (owned.level >= 10) {
+                showToast('法宝已达最高等级!');
+                return;
+            }
+            const artifact = ARTIFACTS.find(a => a.id === artifactId);
+            const cost = getArtifactUpgradeCost(artifact, owned.level);
+            if (playerData.spiritStones < cost.spiritStones) {
+                showToast('灵石不足!');
+                return;
+            }
+            if ((playerData.materials[1] || 0) < cost.materials) {
+                showToast('炼器材料不足!(需要玄铁)');
+                return;
+            }
+            playerData.spiritStones -= cost.spiritStones;
+            playerData.materials[1] = (playerData.materials[1] || 0) - cost.materials;
+            owned.level++;
+            showToast(`${artifact.name} 升级到 Lv.${owned.level}!`);
+            renderArtifactInventory();
+            renderEquippedArtifacts();
+            updateUI();
+        }
+
+        // 渲染法宝商店
+        function renderArtifactShop() {
+            const container = document.getElementById('artifactShop');
+            let html = '';
+            ARTIFACTS.forEach(artifact => {
+                const owned = playerData.ownedArtifacts.find(o => o.artifactId === artifact.id);
+                const canBuy = !owned && playerData.spiritStones >= artifact.price;
+                const rarityColor = artifact.rarity === 'legend' ? 'var(--gold)' : 
+                                   artifact.rarity === 'epic' ? 'var(--purple)' : 'var(--blue)';
+                html += `<div class="artifact-card">
+                    <div class="artifact-icon">${artifact.icon}</div>
+                    <div class="artifact-info">
+                        <div class="artifact-name" style="color:${rarityColor}">${artifact.name}</div>
+                        <div class="artifact-desc">${artifact.desc}</div>
+                        <div class="artifact-stats">修炼加成: +${Math.round(artifact.effects.cultivationBonus * 100)}%</div>
+                        <div class="artifact-level">${artifact.rarity.toUpperCase()}</div>
+                    </div>
+                    <div class="artifact-actions">
+                        ${owned ? 
+                            '<span style="font-size:11px;color:var(--green);">已拥有</span>' :
+                            `<button class="btn btn-small btn-primary" onclick="buyArtifact(${artifact.id})"
+                                ${canBuy ? '' : 'disabled'}>
+                                ${artifact.price}灵石
+                            </button>`
+                        }
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        // 购买法宝
+        function buyArtifact(artifactId) {
+            const artifact = ARTIFACTS.find(a => a.id === artifactId);
+            if (!artifact) return;
+            if (playerData.ownedArtifacts.find(o => o.artifactId === artifactId)) {
+                showToast('你已拥有此法宝!');
+                return;
+            }
+            if (playerData.spiritStones < artifact.price) {
+                showToast('灵石不足!');
+                return;
+            }
+            playerData.spiritStones -= artifact.price;
+            playerData.ownedArtifacts.push({
+                artifactId: artifactId,
+                level: 1,
+                exp: 0
+            });
+            showToast(`获得 ${artifact.icon} ${artifact.name}!`);
+            renderArtifactShop();
+            renderArtifactInventory();
+            updateUI();
+        }
+
+        // 购买炼器材料
+        function buyArtifactMaterial(materialId) {
+            const material = ARTIFACT_MATERIALS.find(m => m.id === materialId);
+            if (!material) return;
+            if (playerData.spiritStones < material.price) {
+                showToast('灵石不足!');
+                return;
+            }
+            playerData.spiritStones -= material.price;
+            playerData.materials[materialId] = (playerData.materials[materialId] || 0) + 1;
+            showToast(`购买 ${material.icon} ${material.name}!`);
+            updateUI();
         }
 
         // ==================== 宗门系统 ====================
@@ -2102,7 +2552,10 @@
                 }
             });
 
-            return Math.floor(baseRate * realmBonus * skillMultiplier * totalTalent);
+            // 法宝加成
+            const artifactBonus = 1 + getArtifactCultivationBonus();
+
+            return Math.floor(baseRate * realmBonus * skillMultiplier * totalTalent * artifactBonus);
         }
 
         // 获取悟性(包含功法和临时buff)
