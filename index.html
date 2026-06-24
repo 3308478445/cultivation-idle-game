@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>修仙放置游戏 v0.6</title>
+    <title>修仙放置游戏 v0.7</title>
     <style>
         * {
             margin: 0;
@@ -938,6 +938,79 @@
             flex-direction: column;
             gap: 4px;
         }
+
+        /* 灵兽样式 */
+        .beast-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .beast-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .beast-icon {
+            font-size: 36px;
+            width: 50px;
+            text-align: center;
+        }
+
+        .beast-info {
+            flex: 1;
+        }
+
+        .beast-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--gold);
+            margin-bottom: 4px;
+        }
+
+        .beast-level {
+            font-size: 11px;
+            color: var(--purple);
+            margin-bottom: 4px;
+        }
+
+        .beast-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .beast-effect {
+            font-size: 11px;
+            color: var(--cyan);
+            margin-top: 4px;
+        }
+
+        .beast-exp-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            margin-top: 4px;
+            overflow: hidden;
+        }
+
+        .beast-exp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--purple), var(--gold));
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        .beast-action-btns {
+            display: flex;
+            gap: 4px;
+        }
     </style>
 </head>
 <body>
@@ -952,6 +1025,7 @@
             <div class="tab" onclick="switchTab('achievements')">🏆</div>
             <div class="tab" onclick="switchTab('sect')">宗门</div>
             <div class="tab" onclick="switchTab('artifact')">法宝</div>
+            <div class="tab" onclick="switchTab('beast')">灵兽</div>
         </div>
 
         <!-- 主界面 -->
@@ -1238,6 +1312,66 @@
         </div>
     </div>
 
+    <!-- 灵兽界面 -->
+    <div id="beast-tab" class="tab-content">
+        <div class="header">
+            <h2 class="title" style="font-size: 24px;">🐉 灵兽系统</h2>
+        </div>
+
+        <!-- 灵兽小屋 -->
+        <div class="info-section">
+            <div class="info-title">🏠 我的灵兽</div>
+            <div id="beastHouse" style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="text-align: center; color: var(--text-secondary); padding: 20px;">
+                    还没有灵兽,去野外捕捉吧!
+                </div>
+            </div>
+        </div>
+
+        <!-- 野外捕捉 -->
+        <div class="info-section">
+            <div class="info-title">🌲 野外捕捉</div>
+            <div style="text-align: center; margin-bottom: 10px;">
+                <button class="btn btn-primary" onclick="goWildBeast()" style="padding: 10px 24px; font-size: 14px;">
+                    🔍 进入野外 (消耗50灵气)
+                </button>
+            </div>
+            <div style="font-size: 11px; color: var(--text-secondary); text-align: center;">
+                野外可遇到随机灵兽,成功率与悟性相关
+            </div>
+        </div>
+
+        <!-- 灵兽商店 -->
+        <div class="info-section">
+            <div class="info-title">🏪 灵兽商店</div>
+            <div id="beastShop" style="display: flex; flex-direction: column; gap: 8px;">
+            </div>
+        </div>
+    </div>
+
+    <!-- 捕捉弹窗 -->
+    <div id="beastCaptureModal" class="encounter-modal" style="display:none;">
+        <div class="encounter-modal-content" style="background: linear-gradient(135deg, #1a2a4a, #0f1f3a);">
+            <div style="font-size: 64px; text-align: center; margin-bottom: 10px;" id="wildBeastIcon">🐺</div>
+            <div style="font-size: 18px; font-weight: bold; color: var(--gold); text-align: center; margin-bottom: 8px;" id="wildBeastName">野狼</div>
+            <div style="font-size: 12px; color: var(--text-secondary); text-align: center; margin-bottom: 8px;" id="wildBeastInfo">等级 1 | 普通</div>
+            <div style="font-size: 13px; color: var(--cyan); text-align: center; margin-bottom: 12px;" id="wildBeastDesc">速度极快,难以捕捉</div>
+            <div style="margin-bottom: 12px;">
+                <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">捕捉成功率</div>
+                <div class="progress-bar" style="height: 10px;">
+                    <div id="captureProgressBar" class="progress-fill" style="width: 30%; background: var(--cyan);"></div>
+                </div>
+                <div style="font-size: 11px; color: var(--cyan); text-align: center; margin-top: 2px;">
+                    <span id="captureChance">30%</span>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" onclick="closeBeastModal()" style="flex:1; padding: 10px;">逃跑</button>
+                <button class="btn btn-primary" onclick="attemptCapture()" id="captureBtn" style="flex:1; padding: 10px;">🎯 捕捉 (100灵石)</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 奇遇弹窗 -->
     <div id="encounterModal" class="encounter-modal">
         <div class="encounter-modal-content">
@@ -1508,6 +1642,73 @@
             { id: 5, name: '混沌石', icon: '🌌', price: 1000, desc: '传说级材料' },
         ];
 
+        // 灵兽数据
+        const SPIRIT_BEASTS = [
+            // 普通灵兽
+            { id: 1, name: '小狐狸', type: 'normal', icon: '🦊', rarity: 'normal',
+              desc: '灵动可爱的小狐狸', baseEffect: { type: 'spiritRegen', value: 0.1 },
+              price: 200, captureCost: 50, baseExp: 50, expToLevel: 30, maxLevel: 5 },
+            { id: 2, name: '野狼', type: 'normal', icon: '🐺', rarity: 'normal',
+              desc: '速度极快的野狼', baseEffect: { type: 'cultivationSpeed', value: 0.1 },
+              price: 200, captureCost: 50, baseExp: 50, expToLevel: 30, maxLevel: 5 },
+            { id: 3, name: '小白兔', type: 'normal', icon: '🐰', rarity: 'normal',
+              desc: '灵气充沛的灵兔', baseEffect: { type: 'maxSpirit', value: 0.15 },
+              price: 180, captureCost: 40, baseExp: 40, expToLevel: 25, maxLevel: 5 },
+            // 稀有灵兽
+            { id: 4, name: '火凤凰', type: 'rare', icon: '🔥', rarity: 'rare',
+              desc: '浴火重生的神鸟', baseEffect: { type: 'cultivationSpeed', value: 0.25 },
+              price: 800, captureCost: 150, baseExp: 150, expToLevel: 50, maxLevel: 10 },
+            { id: 5, name: '冰凤凰', type: 'rare', icon: '❄️', rarity: 'rare',
+              desc: '寒冰之力的化身', baseEffect: { type: 'breakthroughBonus', value: 0.15 },
+              price: 800, captureCost: 150, baseExp: 150, expToLevel: 50, maxLevel: 10 },
+            { id: 6, name: '独角兽', type: 'rare', icon: '🦄', rarity: 'rare',
+              desc: '纯洁神圣的灵兽', baseEffect: { type: 'talent', value: 0.1 },
+              price: 900, captureCost: 180, baseExp: 180, expToLevel: 55, maxLevel: 10 },
+            { id: 7, name: '哮天犬', type: 'rare', icon: '🐕', rarity: 'rare',
+              desc: '天狗食日之神犬', baseEffect: { type: 'cultivationSpeed', value: 0.2, spiritRegen: 0.15 },
+              price: 850, captureCost: 160, baseExp: 160, expToLevel: 48, maxLevel: 10 },
+            // 史诗灵兽
+            { id: 8, name: '九尾狐', type: 'epic', icon: '🦊', rarity: 'epic',
+              desc: '九尾妖狐,魅惑众生', baseEffect: { type: 'cultivationSpeed', value: 0.35, comprehension: 0.2 },
+              price: 2000, captureCost: 300, baseExp: 300, expToLevel: 80, maxLevel: 15 },
+            { id: 9, name: '麒麟', type: 'epic', icon: '🦒', rarity: 'epic',
+              desc: '祥瑞之兽,仁义无双', baseEffect: { type: 'breakthroughBonus', value: 0.25, talent: 0.15 },
+              price: 2500, captureCost: 350, baseExp: 350, expToLevel: 90, maxLevel: 15 },
+            { id: 10, name: '白虎', type: 'epic', icon: '🐯', rarity: 'epic',
+              desc: '西方神兽,战无不胜', baseEffect: { type: 'attack', value: 30, cultivationSpeed: 0.25 },
+              price: 2200, captureCost: 320, baseExp: 320, expToLevel: 85, maxLevel: 15 },
+            // 传说灵兽
+            { id: 11, name: '青龙', type: 'legend', icon: '🐉', rarity: 'legend',
+              desc: '东方神兽,掌管生机', baseEffect: { type: 'cultivationSpeed', value: 0.5, maxSpirit: 0.3 },
+              price: 5000, captureCost: 500, baseExp: 500, expToLevel: 120, maxLevel: 20 },
+            { id: 12, name: '玄武', type: 'legend', icon: '🐢', rarity: 'legend',
+              desc: '北方神兽,长寿永恒', baseEffect: { type: 'maxSpirit', value: 0.5, defense: 50, breakthroughBonus: 0.2 },
+              price: 5000, captureCost: 500, baseExp: 500, expToLevel: 120, maxLevel: 20 },
+            { id: 13, name: '朱雀', type: 'legend', icon: '🦅', rarity: 'legend',
+              desc: '南方神兽,掌控火焰', baseEffect: { type: 'cultivationSpeed', value: 0.6, spiritRegen: 0.5 },
+              price: 5500, captureCost: 550, baseExp: 550, expToLevel: 130, maxLevel: 20 },
+            { id: 14, name: '鲲鹏', type: 'legend', icon: '🐋', rarity: 'legend',
+              desc: '扶摇直上九万里', baseEffect: { type: 'cultivationSpeed', value: 0.7, talent: 0.2 },
+              price: 6000, captureCost: 600, baseExp: 600, expToLevel: 150, maxLevel: 20 },
+            { id: 15, name: '烛龙', type: 'legend', icon: '🐲', rarity: 'legend',
+              desc: '开眼为昼,闭眼为夜', baseEffect: { type: 'cultivationSpeed', value: 0.8, comprehension: 0.3, breakthroughBonus: 0.3 },
+              price: 8000, captureCost: 800, baseExp: 800, expToLevel: 200, maxLevel: 20 },
+        ];
+
+        // 灵兽好感度(亲密度)系统
+        const BEAST_AFFECTION_LEVELS = [
+            { level: 1, name: '陌生', threshold: 0, effect: 1.0 },
+            { level: 2, name: '熟悉', threshold: 50, effect: 1.1 },
+            { level: 3, name: '亲近', threshold: 120, effect: 1.2 },
+            { level: 4, name: '友好', threshold: 250, effect: 1.35 },
+            { level: 5, name: '信赖', threshold: 500, effect: 1.5 },
+            { level: 6, name: '默契', threshold: 1000, effect: 1.7 },
+            { level: 7, name: '灵魂', threshold: 2000, effect: 2.0 },
+        ];
+
+        // 灵兽野外遇怪配置
+        let currentWildBeast = null;
+
         // 待解锁成就队列(用于显示动画)
         let pendingAchievements = [];
 
@@ -1556,7 +1757,11 @@
             // 法宝系统数据
             ownedArtifacts: [],     // 已拥有的法宝 [{ artifactId, level, exp }]
             equippedArtifacts: [null, null, null], // 装备的法宝 [artifactId or null]
-            materials: {}           // 炼器材料 { materialId: count }
+            materials: {},          // 炼器材料 { materialId: count }
+
+            // 灵兽系统数据
+            ownedBeasts: [],        // 已拥有的灵兽 [{ beastId, level, exp, affection, name }]
+            equippedBeast: null,    // 当前出战的灵兽 beastId
         };
 
         let gameInterval = null;
@@ -1590,6 +1795,7 @@
             if (tabName === 'achievements') renderAchievements();
             if (tabName === 'sect') renderSect();
             if (tabName === 'artifact') renderArtifact();
+            if (tabName === 'beast') renderBeast();
         }
 
         // ==================== 成就系统 ====================
@@ -1766,6 +1972,282 @@
             showToast(`花费50灵石,获得 ${material.icon} ${material.name}!`);
             renderArtifactMaterials();
             updateUI();
+        }
+
+        // ==================== 灵兽系统 ====================
+        
+        // 渲染灵兽界面
+        function renderBeast() {
+            renderBeastHouse();
+            renderBeastShop();
+        }
+
+        // 渲染灵兽小屋
+        function renderBeastHouse() {
+            const container = document.getElementById('beastHouse');
+            if (playerData.ownedBeasts.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">还没有灵兽,去野外捕捉吧!</div>';
+                return;
+            }
+            let html = '';
+            playerData.ownedBeasts.forEach(owned => {
+                const beast = SPIRIT_BEASTS.find(b => b.id === owned.beastId);
+                const isActive = playerData.equippedBeast === owned.beastId;
+                const expForNext = getBeastExpForLevel(owned.level + 1, beast);
+                const expProgress = expForNext > 0 ? Math.floor((owned.exp / expForNext) * 100) : 100;
+                const affectionLevel = getBeastAffectionLevel(owned.affection);
+                const effectDesc = getBeastEffectDesc(beast, owned.level, affectionLevel.effect);
+                const rarityColor = beast.rarity === 'legend' ? 'var(--gold)' : 
+                                   beast.rarity === 'epic' ? 'var(--purple)' : 
+                                   beast.rarity === 'rare' ? 'var(--blue)' : 'var(--text-primary)';
+                html += `<div class="beast-card" ${isActive ? 'style="border:2px solid var(--gold);background:rgba(255,215,0,0.1);"' : ''}>
+                    <div class="beast-icon">${beast.icon}</div>
+                    <div class="beast-info">
+                        <div class="beast-name" style="color:${rarityColor}">${owned.name || beast.name}</div>
+                        <div class="beast-level">等级 ${owned.level}/${beast.maxLevel} | ${beast.rarity.toUpperCase()} | 好感: ${affectionLevel.name}</div>
+                        <div class="beast-desc">${beast.desc}</div>
+                        <div class="beast-effect">${effectDesc}</div>
+                        ${owned.level < beast.maxLevel ? `
+                        <div class="beast-exp-bar">
+                            <div class="beast-exp-fill" style="width:${expProgress}%;"></div>
+                        </div>
+                        <div style="font-size:10px;color:var(--text-secondary);">经验: ${owned.exp}/${expForNext}</div>
+                        ` : '<div style="font-size:10px;color:var(--gold);">已达满级!</div>'}
+                    </div>
+                    <div class="beast-action-btns">
+                        ${isActive ? 
+                            '<span style="font-size:11px;color:var(--gold);">战斗中</span>' :
+                            `<button class="btn btn-small" onclick="setActiveBeast(${owned.beastId})">出战</button>`
+                        }
+                        <button class="btn btn-small" onclick="feedBeast(${owned.beastId})" style="padding:4px 8px;font-size:11px;">🍼好感</button>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        // 获取灵兽升级所需经验
+        function getBeastExpForLevel(level, beast) {
+            return Math.floor(beast.baseExp * Math.pow(beast.expToLevel / 10, level - 1));
+        }
+
+        // 获取灵兽好感度等级
+        function getBeastAffectionLevel(affection) {
+            for (let i = BEAST_AFFECTION_LEVELS.length - 1; i >= 0; i--) {
+                if (affection >= BEAST_AFFECTION_LEVELS[i].threshold) {
+                    return BEAST_AFFECTION_LEVELS[i];
+                }
+            }
+            return BEAST_AFFECTION_LEVELS[0];
+        }
+
+        // 获取灵兽效果描述
+        function getBeastEffectDesc(beast, level, affectionMult) {
+            const base = beast.baseEffect;
+            const levelBonus = 1 + (level - 1) * 0.1;
+            const total = affectionMult * levelBonus;
+            let desc = '';
+            if (base.type === 'cultivationSpeed') desc = `修炼速度 +${Math.round((base.value * total) * 100)}%`;
+            else if (base.type === 'spiritRegen') desc = `灵气回复 +${Math.round((base.value * total) * 100)}%`;
+            else if (base.type === 'maxSpirit') desc = `灵气上限 +${Math.round((base.value * total) * 100)}%`;
+            else if (base.type === 'breakthroughBonus') desc = `突破成功率 +${Math.round((base.value * total) * 100)}%`;
+            else if (base.type === 'talent') desc = `资质 +${(base.value * total).toFixed(2)}`;
+            else if (base.type === 'comprehension') desc = `悟性 +${(base.value * total).toFixed(2)}`;
+            else if (base.type === 'attack') desc = `攻击 +${Math.round(base.value * total)}`;
+            if (base.spiritRegen) desc += ` | 灵气回复 +${Math.round((base.spiritRegen * total) * 100)}%`;
+            return desc;
+        }
+
+        // 出战灵兽
+        function setActiveBeast(beastId) {
+            const owned = playerData.ownedBeasts.find(o => o.beastId === beastId);
+            if (!owned) return;
+            playerData.equippedBeast = beastId;
+            showToast(`${(owned.name || SPIRIT_BEASTS.find(b => b.id === beastId).name)} 开始出战!`);
+            renderBeastHouse();
+        }
+
+        // 喂养灵兽(增加好感度)
+        function feedBeast(beastId) {
+            const owned = playerData.ownedBeasts.find(o => o.beastId === beastId);
+            if (!owned) return;
+            const affectionLevel = getBeastAffectionLevel(owned.affection);
+            if (affectionLevel.level >= BEAST_AFFECTION_LEVELS.length) {
+                showToast('好感度已达最高!');
+                return;
+            }
+            const cost = 20;
+            if (playerData.spiritStones < cost) {
+                showToast('灵石不足!(需要20灵石)');
+                return;
+            }
+            playerData.spiritStones -= cost;
+            owned.affection += 10;
+            const newLevel = getBeastAffectionLevel(owned.affection);
+            showToast(`好感度 +10! 好感等级: ${newLevel.name}`);
+            renderBeastHouse();
+            updateUI();
+        }
+
+        // 灵兽获得经验
+        function addBeastExp(amount) {
+            if (playerData.equippedBeast === null) return;
+            const owned = playerData.ownedBeasts.find(o => o.beastId === playerData.equippedBeast);
+            if (!owned) return;
+            const beast = SPIRIT_BEASTS.find(b => b.id === owned.beastId);
+            if (owned.level >= beast.maxLevel) return; // 满级不获得经验
+            owned.exp += amount;
+            // 检查升级
+            const expForNext = getBeastExpForLevel(owned.level + 1, beast);
+            if (owned.exp >= expForNext) {
+                owned.level++;
+                owned.exp -= expForNext;
+                showToast(`${owned.name || beast.name} 升级到 Lv.${owned.level}!`);
+            }
+        }
+
+        // 获取灵兽加成(修炼)
+        function getBeastCultivationBonus() {
+            if (playerData.equippedBeast === null) return 0;
+            const owned = playerData.ownedBeasts.find(o => o.beastId === playerData.equippedBeast);
+            if (!owned) return 0;
+            const beast = SPIRIT_BEASTS.find(b => b.id === owned.beastId);
+            const affectionLevel = getBeastAffectionLevel(owned.affection);
+            const levelBonus = 1 + (owned.level - 1) * 0.1;
+            const mult = affectionLevel.effect * levelBonus;
+            return (beast.baseEffect.value || 0) * mult;
+        }
+
+        // 进入野外
+        function goWildBeast() {
+            const cost = 50;
+            if (playerData.spirit < cost) {
+                showToast('灵气不足!(需要50灵气)');
+                return;
+            }
+            playerData.spirit -= cost;
+            // 随机遇到一只灵兽
+            const weights = { normal: 50, rare: 35, epic: 12, legend: 3 };
+            const total = Object.values(weights).reduce((a, b) => a + b, 0);
+            let rand = Math.random() * total;
+            let rarity = 'normal';
+            for (const [r, w] of Object.entries(weights)) {
+                rand -= w;
+                if (rand <= 0) { rarity = r; break; }
+            }
+            const beastsOfRarity = SPIRIT_BEASTS.filter(b => b.rarity === rarity);
+            currentWildBeast = beastsOfRarity[Math.floor(Math.random() * beastsOfRarity.length)];
+            // 计算捕捉成功率
+            const baseChance = { normal: 60, rare: 40, epic: 25, legend: 15 }[rarity];
+            const comprehensionBonus = Math.floor((playerData.comprehension - 1) * 20);
+            const captureChance = Math.min(85, baseChance + comprehensionBonus);
+            // 显示弹窗
+            document.getElementById('wildBeastIcon').textContent = currentWildBeast.icon;
+            document.getElementById('wildBeastName').textContent = currentWildBeast.name;
+            document.getElementById('wildBeastInfo').textContent = `等级 1 | ${currentWildBeast.rarity.toUpperCase()}`;
+            document.getElementById('wildBeastDesc').textContent = currentWildBeast.desc;
+            document.getElementById('captureChance').textContent = captureChance + '%';
+            document.getElementById('captureProgressBar').style.width = captureChance + '%';
+            document.getElementById('beastCaptureModal').style.display = 'flex';
+            renderBeastShop();
+            updateUI();
+        }
+
+        // 尝试捕捉
+        function attemptCapture() {
+            if (!currentWildBeast) return;
+            const cost = 100;
+            if (playerData.spiritStones < cost) {
+                showToast('灵石不足!(需要100灵石)');
+                return;
+            }
+            playerData.spiritStones -= cost;
+            // 计算成功率
+            const baseChance = { normal: 60, rare: 40, epic: 25, legend: 15 }[currentWildBeast.rarity];
+            const comprehensionBonus = Math.floor((playerData.comprehension - 1) * 20);
+            const captureChance = Math.min(85, baseChance + comprehensionBonus);
+            // 判定
+            const roll = Math.random() * 100;
+            if (roll < captureChance) {
+                // 捕捉成功
+                const owned = {
+                    beastId: currentWildBeast.id,
+                    level: 1,
+                    exp: 0,
+                    affection: 0,
+                    name: ''
+                };
+                playerData.ownedBeasts.push(owned);
+                showToast(`捕捉成功! 获得 ${currentWildBeast.icon} ${currentWildBeast.name}!`);
+                closeBeastModal();
+                renderBeastHouse();
+            } else {
+                showToast('捕捉失败!...灵兽逃跑了!');
+                closeBeastModal();
+            }
+        }
+
+        // 关闭捕捉弹窗
+        function closeBeastModal() {
+            document.getElementById('beastCaptureModal').style.display = 'none';
+            currentWildBeast = null;
+        }
+
+        // 购买灵兽
+        function buyBeast(beastId) {
+            const beast = SPIRIT_BEASTS.find(b => b.id === beastId);
+            if (!beast) return;
+            if (playerData.ownedBeasts.find(o => o.beastId === beastId)) {
+                showToast('你已拥有此灵兽!');
+                return;
+            }
+            if (playerData.spiritStones < beast.price) {
+                showToast('灵石不足!');
+                return;
+            }
+            playerData.spiritStones -= beast.price;
+            playerData.ownedBeasts.push({
+                beastId: beastId,
+                level: 1,
+                exp: 0,
+                affection: 20,
+                name: ''
+            });
+            showToast(`购买成功! 获得 ${beast.icon} ${beast.name}!`);
+            renderBeastHouse();
+            renderBeastShop();
+            updateUI();
+        }
+
+        // 渲染灵兽商店
+        function renderBeastShop() {
+            const container = document.getElementById('beastShop');
+            let html = '';
+            SPIRIT_BEASTS.forEach(beast => {
+                const owned = playerData.ownedBeasts.find(o => o.beastId === beast.id);
+                const canBuy = !owned && playerData.spiritStones >= beast.price;
+                const rarityColor = beast.rarity === 'legend' ? 'var(--gold)' : 
+                                   beast.rarity === 'epic' ? 'var(--purple)' : 
+                                   beast.rarity === 'rare' ? 'var(--blue)' : 'var(--text-primary)';
+                html += `<div class="beast-card">
+                    <div class="beast-icon">${beast.icon}</div>
+                    <div class="beast-info">
+                        <div class="beast-name" style="color:${rarityColor}">${beast.name}</div>
+                        <div class="beast-level">${beast.rarity.toUpperCase()} | 最高${beast.maxLevel}级</div>
+                        <div class="beast-desc">${beast.desc}</div>
+                        <div class="beast-effect">${getBeastEffectDesc(beast, 1, 1.0)}</div>
+                    </div>
+                    <div>
+                        ${owned ? 
+                            '<span style="font-size:11px;color:var(--green);">已拥有</span>' :
+                            `<button class="btn btn-small btn-primary" onclick="buyBeast(${beast.id})" ${canBuy ? '' : 'disabled'}>
+                                ${beast.price}灵石
+                            </button>`
+                        }
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
         }
 
         // 渲染已装备法宝
@@ -2527,6 +3009,11 @@
 
             checkBreakthroughAvailability();
             checkAchievements(); // 检查成就
+            // 灵兽获得经验(每获得100修为,灵兽获得1经验)
+            if (playerData.equippedBeast !== null) {
+                const beastExp = Math.floor(gain / 100);
+                if (beastExp > 0) addBeastExp(beastExp);
+            }
         }
 
         // 获取修为增益(包含功法加成)
@@ -2554,8 +3041,10 @@
 
             // 法宝加成
             const artifactBonus = 1 + getArtifactCultivationBonus();
+            // 灵兽加成
+            const beastBonus = 1 + getBeastCultivationBonus();
 
-            return Math.floor(baseRate * realmBonus * skillMultiplier * totalTalent * artifactBonus);
+            return Math.floor(baseRate * realmBonus * skillMultiplier * totalTalent * artifactBonus * beastBonus);
         }
 
         // 获取悟性(包含功法和临时buff)
