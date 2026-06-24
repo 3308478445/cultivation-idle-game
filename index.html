@@ -1190,6 +1190,7 @@
             <div class="tab" onclick="switchTab('beast')">灵兽</div>
             <div class="tab" onclick="switchTab('cave')">洞府</div>
             <div class="tab" onclick="switchTab('story')">剧情</div>
+            <div class="tab" onclick="switchTab('cloud')">☁️</div>
         </div>
 
         <!-- 主界面 -->
@@ -1261,6 +1262,24 @@
 
             <div class="message" id="messageBox">
                 修炼中...灵气自动恢复,修为自动增长。
+            </div>
+
+            <!-- 存档管理 -->
+            <div class="info-section" style="margin-top: 16px;">
+                <div class="info-title">
+                    <span>💾 存档管理</span>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-cultivate" onclick="exportSave()" style="flex:1; padding: 12px; font-size: 14px;">
+                        📤 导出存档
+                    </button>
+                    <button class="btn btn-breakthrough" onclick="importSave()" style="flex:1; padding: 12px; font-size: 14px;">
+                        📥 导入存档
+                    </button>
+                </div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 8px; text-align: center;">
+                    💡 导出后保存在本地，换设备可用导入恢复
+                </div>
             </div>
         </div>
 
@@ -1596,6 +1615,77 @@
             <div class="info-title">📖 章节列表 <span id="storyProgress" style="font-size:12px;color:var(--text-secondary);font-weight:normal;"></span></div>
             <div id="storyList" style="display: flex; flex-direction: column; gap: 8px;">
             </div>
+        </div>
+    </div>
+
+    <!-- 云同步界面 -->
+    <div id="cloud-tab" class="tab-content">
+        <div class="header">
+            <h2 class="title" style="font-size: 24px;">☁️ 云端同步</h2>
+        </div>
+
+        <!-- GitHub Token 设置 -->
+        <div class="info-section">
+            <div class="info-title">
+                <span>🔑 GitHub Token</span>
+                <span id="tokenStatus" style="font-size:11px;color:var(--text-secondary);">未设置</span>
+            </div>
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <input type="password" id="githubToken" placeholder="请输入 GitHub Personal Access Token" 
+                    style="flex:1; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: var(--text-primary); font-size: 13px;">
+            </div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px;">
+                💡 如何获取 Token：
+                <a href="#" onclick="alert('请访问 https://github.com/settings/tokens\n点击 Generate new token (classic)\n勾选 gist 权限\n创建后复制 Token 粘贴到此处')" 
+                   style="color: var(--blue); text-decoration: underline;">点击查看教程</a>
+            </div>
+            <button class="btn btn-cultivate" onclick="saveGithubToken()" style="width: 100%;">
+                保存 Token
+            </button>
+        </div>
+
+        <!-- 云端同步开关 -->
+        <div class="info-section">
+            <div class="info-title">
+                <span>📡 自动同步</span>
+                <div class="toggle-switch" id="autoSyncToggle" onclick="toggleAutoSync()"></div>
+            </div>
+            <div style="font-size: 12px; color: var(--text-secondary);">
+                开启后每 60 秒自动保存到 GitHub Gist
+            </div>
+        </div>
+
+        <!-- 手动同步按钮 -->
+        <div class="info-section">
+            <div class="info-title">
+                <span>🔄 手动同步</span>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-cultivate" onclick="manualUpload()" style="flex:1;">
+                    ⬆️ 上传存档
+                </button>
+                <button class="btn btn-breakthrough" onclick="manualDownload()" style="flex:1;">
+                    ⬇️ 下载存档
+                </button>
+            </div>
+        </div>
+
+        <!-- 同步状态 -->
+        <div class="info-section">
+            <div class="info-title">
+                <span>📋 同步状态</span>
+            </div>
+            <div id="syncStatus" style="font-size: 13px; color: var(--text-secondary);">
+                尚未同步
+            </div>
+        </div>
+
+        <!-- Gist 信息 -->
+        <div class="info-section" id="gistInfoSection" style="display: none;">
+            <div class="info-title">
+                <span>🔗 Gist 链接</span>
+            </div>
+            <div id="gistLink" style="font-size: 12px; word-break: break-all;"></div>
         </div>
     </div>
 
@@ -4116,6 +4206,77 @@
         function saveGame() {
             playerData.lastOnlineTime = Date.now();
             localStorage.setItem('cultivationGame', JSON.stringify(playerData));
+        }
+
+        // 导出存档为 JSON 文件
+        function exportSave() {
+            saveGame(); // 先保存本地
+            const saveData = JSON.stringify(playerData, null, 2);
+            const blob = new Blob([saveData], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            // 文件名包含时间和境界信息
+            const realmNames = ['炼气', '筑基', '金丹', '元婴', '化神'];
+            const realmName = realmNames[playerData.realm - 1] || '未知';
+            const filename = `修仙存档_${realmName}境_${formatTimeShort(Date.now())}.json`;
+            
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showMessage('存档已导出！记得保存好文件', 'success');
+        }
+
+        // 辅助函数：格式化时间用于文件名
+        function formatTimeShort(timestamp) {
+            const d = new Date(timestamp);
+            const Y = d.getFullYear();
+            const M = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const h = String(d.getHours()).padStart(2, '0');
+            const m = String(d.getMinutes()).padStart(2, '0');
+            return `${Y}${M}${day}_${h}${m}`;
+        }
+
+        // 导入存档从 JSON 文件
+        function importSave() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = event => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        
+                        // 简单验证：检查是否有必要字段
+                        if (!data.realm || data.cultivation === undefined) {
+                            showMessage('存档文件无效！', 'fail');
+                            return;
+                        }
+                        
+                        // 合并数据，保留新版本可能新增的字段
+                        playerData = {...playerData, ...data};
+                        saveGame();
+                        
+                        const realmNames = ['炼气', '筑基', '金丹', '元婴', '化神'];
+                        const realmName = realmNames[playerData.realm - 1] || '未知';
+                        showMessage(`已恢复存档！境界: ${realmName}境`, 'success');
+                        
+                        // 刷新界面
+                        location.reload();
+                    } catch (err) {
+                        showMessage('导入失败：文件格式错误', 'fail');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
         }
 
         function loadGame() {
