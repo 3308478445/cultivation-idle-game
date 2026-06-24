@@ -1,4 +1,5 @@
-/* ========== base.css - 基础变量与重置 ========== */
+/* ==================== base.css — 基础变量、重置、字体 ==================== */
+
 * {
     margin: 0;
     padding: 0;
@@ -10,51 +11,32 @@
     --ink-black: #0a0a1a;
     --ink-dark: #1a1a2e;
     --jade: #5fb0a8;
-    --jade-light: #7fd0c8;
     --gold: #e8c547;
-    --gold-light: #f5d96a;
     --purple: #7b5ea7;
-    --purple-light: #9b7ec7;
     --vermillion: #c0392b;
     --spirit-white: #e8f0f0;
     --smoke-gray: #8a8a9a;
-    --cyan: #4ecdc4;
-    --green: #6ec06e;
-    --orange: #e8943c;
-    --red: #e74c3c;
-    --blue: #4a90e2;
-    
-    /* 背景色 */
-    --bg-dark: var(--ink-black);
-    --bg-card: rgba(22, 33, 62, 0.6);
-    --bg-lighter: rgba(30, 42, 74, 0.5);
-    
-    /* 磨砂玻璃 */
     --glass-bg: rgba(95, 176, 168, 0.08);
     --glass-border: rgba(95, 176, 168, 0.2);
-    --glass-hover: rgba(95, 176, 168, 0.15);
-    
-    /* 文字 */
+    --card-bg: rgba(22, 33, 62, 0.6);
+
+    /* 兼容旧变量映射 */
+    --blue: var(--jade);
+    --red: var(--vermillion);
+    --green: #5fb0a8;
+    --cyan: #5fb0a8;
+    --orange: #e8c547;
+    --bg-dark: var(--ink-dark);
+    --bg-card: var(--card-bg);
+    --bg-lighter: rgba(30, 42, 74, 0.8);
     --text-primary: var(--spirit-white);
     --text-secondary: var(--smoke-gray);
-    
-    /* 字体 */
-    --font-title: 'STKaiti', 'KaiTi', 'Microsoft YaHei', serif;
-    --font-body: 'Microsoft YaHei', '微软雅黑', sans-serif;
-    
-    /* 阴影 */
-    --shadow-glow: 0 0 20px rgba(95, 176, 168, 0.3);
-    --shadow-gold: 0 0 20px rgba(232, 197, 71, 0.3);
 }
 
 body {
-    font-family: var(--font-body);
-    background: 
-        radial-gradient(ellipse at 20% 0%, rgba(95, 176, 168, 0.08) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 100%, rgba(123, 94, 167, 0.08) 0%, transparent 50%),
-        linear-gradient(135deg, var(--ink-black) 0%, var(--ink-dark) 100%);
-    background-attachment: fixed;
-    color: var(--text-primary);
+    font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
+    background: linear-gradient(135deg, var(--ink-black) 0%, var(--ink-dark) 50%, #0f0f23 100%);
+    color: var(--spirit-white);
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -63,20 +45,28 @@ body {
     overflow-x: hidden;
 }
 
-/* 仙气粒子背景 */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-image: 
-        radial-gradient(2px 2px at 20% 30%, rgba(232, 197, 71, 0.15), transparent),
-        radial-gradient(2px 2px at 60% 70%, rgba(95, 176, 168, 0.15), transparent),
-        radial-gradient(1px 1px at 50% 50%, rgba(232, 197, 71, 0.1), transparent),
-        radial-gradient(1px 1px at 80% 20%, rgba(123, 94, 167, 0.15), transparent),
-        radial-gradient(2px 2px at 30% 80%, rgba(95, 176, 168, 0.1), transparent);
-    background-size: 300px 300px;
-    background-repeat: repeat;
-    pointer-events: none;
-    z-index: 0;
-    animation: spiritDrift 30s linear infinite;
+/* 滚动条美化 */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(95, 176, 168, 0.05);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(95, 176, 168, 0.3);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(95, 176, 168, 0.5);
+}
+
+/* 文字选中 */
+::selection {
+    background: rgba(232, 197, 71, 0.3);
+    color: var(--spirit-white);
 }
