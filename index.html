@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>修仙放置游戏 v0.7</title>
+    <title>修仙放置游戏 v0.8</title>
     <style>
         * {
             margin: 0;
@@ -1011,6 +1011,80 @@
             display: flex;
             gap: 4px;
         }
+
+        /* 洞府样式 */
+        .cave-upgrade-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cave-upgrade-icon {
+            font-size: 28px;
+            width: 40px;
+            text-align: center;
+        }
+
+        .cave-upgrade-info {
+            flex: 1;
+        }
+
+        .cave-upgrade-name {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--gold);
+            margin-bottom: 2px;
+        }
+
+        .cave-upgrade-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .cave-upgrade-level {
+            font-size: 10px;
+            color: var(--purple);
+        }
+
+        .herb-plot-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .herb-plot-icon {
+            font-size: 28px;
+            width: 40px;
+            text-align: center;
+        }
+
+        .herb-plot-info {
+            flex: 1;
+        }
+
+        .herb-plot-name {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--green);
+            margin-bottom: 2px;
+        }
+
+        .herb-plot-status {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .herb-plot-progress {
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
@@ -1026,6 +1100,7 @@
             <div class="tab" onclick="switchTab('sect')">宗门</div>
             <div class="tab" onclick="switchTab('artifact')">法宝</div>
             <div class="tab" onclick="switchTab('beast')">灵兽</div>
+            <div class="tab" onclick="switchTab('cave')">洞府</div>
         </div>
 
         <!-- 主界面 -->
@@ -1345,6 +1420,71 @@
         <div class="info-section">
             <div class="info-title">🏪 灵兽商店</div>
             <div id="beastShop" style="display: flex; flex-direction: column; gap: 8px;">
+            </div>
+        </div>
+    </div>
+
+    <!-- 洞府界面 -->
+    <div id="cave-tab" class="tab-content">
+        <div class="header">
+            <h2 class="title" style="font-size: 24px;">🏠 洞府系统</h2>
+        </div>
+
+        <!-- 洞府信息 -->
+        <div class="info-section">
+            <div class="info-title">🏡 洞府概况</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; text-align: center;">
+                <div style="background:rgba(255,255,255,0.05);border-radius:8px;padding:10px;">
+                    <div style="font-size:20px;">🌿</div>
+                    <div style="font-size:12px;color:var(--text-secondary);">洞府等级</div>
+                    <div style="font-size:16px;color:var(--gold);" id="caveLevel">Lv.1</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05);border-radius:8px;padding:10px;">
+                    <div style="font-size:20px;">📈</div>
+                    <div style="font-size:12px;color:var(--text-secondary);">繁荣度</div>
+                    <div style="font-size:16px;color:var(--cyan);" id="caveProsperity">0</div>
+                </div>
+            </div>
+            <div style="margin-top:8px;">
+                <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">
+                    <span>洞府经验</span><span><span id="caveExp">0</span>/<span id="caveExpMax">100</span></span>
+                </div>
+                <div class="progress-bar" style="height:8px;">
+                    <div id="caveExpBar" class="progress-fill" style="width:0%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 灵草园 -->
+        <div class="info-section">
+            <div class="info-title">🌱 灵草园</div>
+            <div id="herbGarden" style="display:flex;flex-direction:column;gap:8px;">
+            </div>
+            <div style="text-align:center;margin-top:8px;">
+                <button class="btn btn-small" onclick="buyHerbPlot()" id="buyPlotBtn">开垦新地块 (200灵石)</button>
+            </div>
+        </div>
+
+        <!-- 炼丹炉 -->
+        <div class="info-section">
+            <div class="info-title">🔥 炼丹炉</div>
+            <div id="alchemyFurnace" style="text-align:center;padding:10px;background:rgba(255,255,255,0.05);border-radius:10px;">
+                <div style="font-size:48px;margin-bottom:8px;">🔥</div>
+                <div style="font-size:14px;margin-bottom:4px;">炼丹效率</div>
+                <div style="font-size:12px;color:var(--cyan);" id="alchemyEfficiency">基础 (100%)</div>
+                <div style="margin-top:8px;">
+                    <button class="btn btn-primary" onclick="alchemyQuickRefine()" style="padding:8px 16px;font-size:13px;">
+                        一键炼丹 (消耗灵草)
+                    </button>
+                </div>
+                <div style="font-size:11px;color:var(--text-secondary);margin-top:6px;">当前拥有: <span id="herbCount">0</span>灵草</div>
+            </div>
+        </div>
+
+        <!-- 洞府升级 -->
+        <div class="info-section">
+            <div class="info-title">⬆️ 洞府升级</div>
+            <div id="caveUpgrade" style="display:flex;flex-direction:column;gap:8px;">
             </div>
         </div>
     </div>
@@ -1709,6 +1849,40 @@
         // 灵兽野外遇怪配置
         let currentWildBeast = null;
 
+        // 洞府配置
+        const CAVE_LEVELS = [
+            { level: 1, name: '简陋洞府', expRequired: 0, maxPlots: 2, alchemyBonus: 1.0, spiritBonus: 0.1 },
+            { level: 2, name: '灵气洞府', expRequired: 100, maxPlots: 3, alchemyBonus: 1.2, spiritBonus: 0.2 },
+            { level: 3, name: '灵泉洞府', expRequired: 300, maxPlots: 4, alchemyBonus: 1.4, spiritBonus: 0.3 },
+            { level: 4, name: '仙灵洞府', expRequired: 800, maxPlots: 5, alchemyBonus: 1.6, spiritBonus: 0.4 },
+            { level: 5, name: '洞天福地', expRequired: 2000, maxPlots: 6, alchemyBonus: 2.0, spiritBonus: 0.5 },
+        ];
+
+        const CAVE_UPGRADES = [
+            { id: 'herb_garden', name: '灵草园', icon: '🌱', desc: '种植灵草,用于炼丹', maxLevel: 5, 
+              baseCost: 100, costMult: 1.5, effectDesc: (lvl) => `产量 +${lvl * 10}%` },
+            { id: 'alchemy_furnace', name: '炼丹炉', icon: '🔥', desc: '炼制丹药,提升炼丹效率', maxLevel: 5,
+              baseCost: 150, costMult: 1.6, effectDesc: (lvl) => `效率 +${lvl * 10}%` },
+            { id: 'spirit_pool', name: '聚灵阵', icon: '💧', desc: '聚集灵气,加快修炼', maxLevel: 5,
+              baseCost: 200, costMult: 1.7, effectDesc: (lvl) => `灵气回复 +${lvl * 5}%` },
+            { id: 'treasure_room', name: '藏宝室', icon: '💎', desc: '珍藏宝物,增加灵石获取', maxLevel: 5,
+              baseCost: 250, costMult: 1.8, effectDesc: (lvl) => `灵石 +${lvl * 8}%` },
+        ];
+
+        // 灵草配置
+        const HERBS = [
+            { id: 1, name: '灵芝', icon: '🍄', growTime: 30, value: 30, color: 'var(--green)', 
+              effect: '少量修为', cultivation: 50 },
+            { id: 2, name: '雪莲', icon: '🌸', growTime: 60, value: 80, color: 'var(--cyan)',
+              effect: '中等修为', cultivation: 150 },
+            { id: 3, name: '人参', icon: '🌿', growTime: 120, value: 150, color: 'var(--orange)',
+              effect: '大量修为', cultivation: 300 },
+            { id: 4, name: '九叶青', icon: '🌾', growTime: 180, value: 300, color: 'var(--gold)',
+              effect: '巨额修为', cultivation: 600 },
+            { id: 5, name: '蟠桃', icon: '🍑', growTime: 300, value: 500, color: 'var(--red)',
+              effect: '传说修为', cultivation: 1200 },
+        ];
+
         // 待解锁成就队列(用于显示动画)
         let pendingAchievements = [];
 
@@ -1762,6 +1936,20 @@
             // 灵兽系统数据
             ownedBeasts: [],        // 已拥有的灵兽 [{ beastId, level, exp, affection, name }]
             equippedBeast: null,    // 当前出战的灵兽 beastId
+
+            // 洞府系统数据
+            caveExp: 0,             // 洞府经验
+            caveProsperity: 0,      // 繁荣度
+            cavePlots: [            // 灵草地块 [{ herbId, plantedAt, readyAt, herbLevel }]
+                { herbId: null, plantedAt: null, readyAt: null, herbLevel: 1 }
+            ],
+            caveUpgrades: {         // 洞府升级 { upgradeId: level }
+                herb_garden: 1,
+                alchemy_furnace: 1,
+                spirit_pool: 1,
+                treasure_room: 1,
+            },
+            herbs: 0,               // 拥有的灵草数量
         };
 
         let gameInterval = null;
@@ -1796,6 +1984,7 @@
             if (tabName === 'sect') renderSect();
             if (tabName === 'artifact') renderArtifact();
             if (tabName === 'beast') renderBeast();
+            if (tabName === 'cave') renderCave();
         }
 
         // ==================== 成就系统 ====================
@@ -2248,6 +2437,209 @@
                 </div>`;
             });
             container.innerHTML = html;
+        }
+
+        // ==================== 洞府系统 ====================
+        
+        // 渲染洞府界面
+        function renderCave() {
+            renderCaveInfo();
+            renderHerbGarden();
+            renderCaveUpgrades();
+        }
+
+        // 渲染洞府信息
+        function renderCaveInfo() {
+            const caveLevel = getCaveLevel();
+            document.getElementById('caveLevel').textContent = `Lv.${caveLevel.level}`;
+            document.getElementById('caveProsperity').textContent = playerData.caveProsperity;
+            const nextLevel = CAVE_LEVELS[caveLevel.level] || CAVE_LEVELS[CAVE_LEVELS.length - 1];
+            const expNeeded = nextLevel.expRequired;
+            document.getElementById('caveExp').textContent = playerData.caveExp;
+            document.getElementById('caveExpMax').textContent = expNeeded;
+            const progress = Math.min(100, Math.floor((playerData.caveExp / expNeeded) * 100));
+            document.getElementById('caveExpBar').style.width = progress + '%';
+            const alchemyBonus = caveLevel.alchemyBonus * (1 + (playerData.caveUpgrades.alchemy_furnace - 1) * 0.1);
+            document.getElementById('alchemyEfficiency').textContent = `${Math.round(alchemyBonus * 100)}% 效率`;
+            document.getElementById('herbCount').textContent = playerData.herbs;
+        }
+
+        function getCaveLevel() {
+            let level = 1;
+            for (let i = CAVE_LEVELS.length - 1; i >= 0; i--) {
+                if (playerData.caveExp >= CAVE_LEVELS[i].expRequired) {
+                    level = i + 1;
+                    break;
+                }
+            }
+            return { level, config: CAVE_LEVELS[level - 1] };
+        }
+
+        function addCaveExp(amount) {
+            playerData.caveExp += amount;
+            playerData.caveProsperity += Math.floor(amount / 10);
+            const caveLevel = getCaveLevel();
+            const oldMaxPlots = CAVE_LEVELS[caveLevel.level - 2]?.maxPlots || 2;
+            const newMaxPlots = caveLevel.config.maxPlots;
+            if (newMaxPlots > oldMaxPlots) {
+                showToast(`洞府升级到 Lv.${caveLevel.level}! 获得新地块!`);
+                while (playerData.cavePlots.length < newMaxPlots) {
+                    playerData.cavePlots.push({ herbId: null, plantedAt: null, readyAt: null, herbLevel: 1 });
+                }
+            }
+        }
+
+        function renderHerbGarden() {
+            const container = document.getElementById('herbGarden');
+            const caveLevel = getCaveLevel();
+            let html = '';
+            playerData.cavePlots.forEach((plot, idx) => {
+                if (plot.herbId === null) {
+                    html += `<div class="herb-plot-card" style="opacity:0.6;">
+                        <div class="herb-plot-icon">⬜</div>
+                        <div class="herb-plot-info">
+                            <div class="herb-plot-name">空地块 #${idx + 1}</div>
+                            <div class="herb-plot-status">点击种植灵草</div>
+                        </div>
+                        <div><button class="btn btn-small" onclick="plantHerb(${idx})">🌱 种植</button></div>
+                    </div>`;
+                } else {
+                    const herb = HERBS.find(h => h.id === plot.herbId);
+                    const now = Date.now();
+                    const remaining = Math.max(0, plot.readyAt - now);
+                    const isReady = remaining === 0;
+                    const progress = Math.min(100, 100 - (remaining / (herb.growTime * 1000)) * 100);
+                    html += `<div class="herb-plot-card" ${isReady ? 'style="border:2px solid var(--gold);"' : ''}>
+                        <div class="herb-plot-icon">${isReady ? '✨' : herb.icon}</div>
+                        <div class="herb-plot-info">
+                            <div class="herb-plot-name" style="color:${herb.color}">${herb.name}</div>
+                            <div class="herb-plot-status">${isReady ? '<span style="color:var(--gold);">✓ 可收获!</span>' : `生长中... ${Math.ceil(remaining/1000)}秒`}</div>
+                            ${!isReady ? `<div class="herb-plot-progress"><div class="progress-bar" style="height:4px;"><div class="progress-fill" style="width:${progress}%;background:${herb.color};"></div></div></div>` : ''}
+                        </div>
+                        <div>${isReady ? `<button class="btn btn-small btn-primary" onclick="harvestHerb(${idx})">收获</button>` : '<span style="font-size:11px;color:var(--text-secondary);">等待中</span>'}</div>
+                    </div>`;
+                }
+            });
+            container.innerHTML = html;
+            const buyBtn = document.getElementById('buyPlotBtn');
+            if (playerData.cavePlots.length >= caveLevel.config.maxPlots) {
+                buyBtn.textContent = `已达上限 (${caveLevel.config.maxPlots}块)`;
+                buyBtn.disabled = true;
+                buyBtn.style.opacity = '0.5';
+            } else {
+                buyBtn.textContent = `开垦新地块 (200灵石)`;
+                buyBtn.disabled = false;
+                buyBtn.style.opacity = '1';
+            }
+        }
+
+        function plantHerb(plotIdx) {
+            const plot = playerData.cavePlots[plotIdx];
+            if (plot.herbId !== null) { showToast('已有灵草!'); return; }
+            const herb = HERBS[0];
+            const now = Date.now();
+            plot.herbId = herb.id;
+            plot.plantedAt = now;
+            plot.readyAt = now + herb.growTime * 1000;
+            plot.herbLevel = 1;
+            showToast(`种植了 ${herb.icon} ${herb.name}!`);
+            renderHerbGarden();
+            if (!window.herbInterval) window.herbInterval = setInterval(checkHerbs, 1000);
+        }
+
+        function harvestHerb(plotIdx) {
+            const plot = playerData.cavePlots[plotIdx];
+            if (plot.herbId === null) return;
+            const herb = HERBS.find(h => h.id === plot.herbId);
+            const herbGardenBonus = 1 + (playerData.caveUpgrades.herb_garden - 1) * 0.1;
+            const amount = Math.floor(herb.cultivation * herbGardenBonus);
+            playerData.cultivation += amount;
+            playerData.herbs++;
+            playerData.stats.totalCultivation += amount;
+            addCaveExp(10);
+            showToast(`收获 ${herb.icon} ${herb.name}! +${amount}修为!`);
+            plot.herbId = null; plot.plantedAt = null; plot.readyAt = null;
+            renderHerbGarden(); renderCaveInfo(); checkAchievements(); updateUI();
+        }
+
+        function checkHerbs() {
+            const now = Date.now();
+            let changed = false;
+            playerData.cavePlots.forEach(plot => {
+                if (plot.herbId !== null && plot.readyAt !== null && now >= plot.readyAt) changed = true;
+            });
+            if (changed) renderHerbGarden();
+        }
+
+        function buyHerbPlot() {
+            const cost = 200;
+            if (playerData.spiritStones < cost) { showToast('灵石不足!'); return; }
+            const caveLevel = getCaveLevel();
+            if (playerData.cavePlots.length >= caveLevel.config.maxPlots) { showToast('已达上限!'); return; }
+            playerData.spiritStones -= cost;
+            playerData.cavePlots.push({ herbId: null, plantedAt: null, readyAt: null, herbLevel: 1 });
+            addCaveExp(20);
+            showToast('开垦了新地块!');
+            renderHerbGarden(); updateUI();
+        }
+
+        function renderCaveUpgrades() {
+            const container = document.getElementById('caveUpgrade');
+            let html = '';
+            CAVE_UPGRADES.forEach(upgrade => {
+                const currentLevel = playerData.caveUpgrades[upgrade.id] || 1;
+                const isMax = currentLevel >= upgrade.maxLevel;
+                const cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.costMult, currentLevel - 1));
+                const canUpgrade = !isMax && playerData.spiritStones >= cost;
+                html += `<div class="cave-upgrade-card">
+                    <div class="cave-upgrade-icon">${upgrade.icon}</div>
+                    <div class="cave-upgrade-info">
+                        <div class="cave-upgrade-name">${upgrade.name}</div>
+                        <div class="cave-upgrade-desc">${upgrade.desc}</div>
+                        <div class="cave-upgrade-level">${isMax ? '已满级' : `Lv.${currentLevel} -> ${upgrade.effectDesc(currentLevel + 1)}`}</div>
+                    </div>
+                    <div>${isMax ? '<span style="font-size:11px;color:var(--gold);">满级</span>' :
+                        `<button class="btn btn-small btn-primary" onclick="upgradeCave('${upgrade.id}')" ${canUpgrade?'':'disabled'}>${cost}灵石</button>`}</div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function upgradeCave(upgradeId) {
+            const upgrade = CAVE_UPGRADES.find(u => u.id === upgradeId);
+            if (!upgrade) return;
+            const currentLevel = playerData.caveUpgrades[upgradeId] || 1;
+            if (currentLevel >= upgrade.maxLevel) { showToast('已满级!'); return; }
+            const cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.costMult, currentLevel - 1));
+            if (playerData.spiritStones < cost) { showToast('灵石不足!'); return; }
+            playerData.spiritStones -= cost;
+            playerData.caveUpgrades[upgradeId]++;
+            addCaveExp(cost / 10);
+            showToast(`${upgrade.icon} ${upgrade.name} 升级到 Lv.${currentLevel + 1}!`);
+            renderCaveUpgrades(); renderCaveInfo(); updateUI();
+        }
+
+        function alchemyQuickRefine() {
+            if (playerData.herbs < 3) { showToast('灵草不足!(需要3个灵草)'); return; }
+            playerData.herbs -= 3;
+            const caveLevel = getCaveLevel();
+            const alchemyBonus = caveLevel.alchemyBonus * (1 + (playerData.caveUpgrades.alchemy_furnace - 1) * 0.1);
+            const pillPool = PILLS.filter(p => p.quality === 'normal' || p.quality === 'good');
+            const pill = pillPool[Math.floor(Math.random() * pillPool.length)];
+            playerData.inventory[pill.id] = (playerData.inventory[pill.id] || 0) + 1;
+            addCaveExp(15);
+            showToast(`炼制成功! 获得 ${pill.icon} ${pill.name}!`);
+            renderCaveInfo(); updateUI();
+        }
+
+        function getCaveSpiritBonus() {
+            const caveLevel = getCaveLevel();
+            const spiritPoolBonus = (playerData.caveUpgrades.spirit_pool - 1) * 0.05;
+            return caveLevel.config.spiritBonus + spiritPoolBonus;
+        }
+
+        function getCaveSpiritStoneBonus() {
+            return (playerData.caveUpgrades.treasure_room - 1) * 0.08;
         }
 
         // 渲染已装备法宝
@@ -3070,7 +3462,22 @@
         }
 
         function getSpiritRecovery() {
-            return 5 + playerData.realm;
+            const caveSpiritBonus = getCaveSpiritBonus();
+            const beastSpiritRegen = getBeastSpiritRegenBonus();
+            const base = 5 + playerData.realm;
+            return Math.floor(base * (1 + caveSpiritBonus + beastSpiritRegen));
+        }
+
+        // 获取灵兽灵气回复加成
+        function getBeastSpiritRegenBonus() {
+            if (playerData.equippedBeast === null) return 0;
+            const owned = playerData.ownedBeasts.find(o => o.beastId === playerData.equippedBeast);
+            if (!owned) return 0;
+            const beast = SPIRIT_BEASTS.find(b => b.id === owned.beastId);
+            if (!beast.baseEffect.spiritRegen) return 0;
+            const affectionLevel = getBeastAffectionLevel(owned.affection);
+            const levelBonus = 1 + (owned.level - 1) * 0.1;
+            return beast.baseEffect.spiritRegen * affectionLevel.effect * levelBonus;
         }
 
         // 突破
