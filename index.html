@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>修仙放置游戏 v0.3</title>
+    <title>修仙放置游戏 v0.4</title>
     <style>
         * {
             margin: 0;
@@ -657,6 +657,153 @@
             0%, 100% { box-shadow: 0 0 20px rgba(155, 89, 182, 0.5); }
             50% { box-shadow: 0 0 40px rgba(155, 89, 182, 0.8); }
         }
+
+        /* ==================== 成就系统样式 ==================== */
+        .achievements-container {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .achievement-summary {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .achievement-progress {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .progress-text {
+            font-size: 14px;
+            color: var(--gold);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .achievement-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .category-badge {
+            display: flex;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .achievement-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .achievement-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+
+        .achievement-card.unlocked {
+            border-color: var(--gold);
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .achievement-card.locked {
+            opacity: 0.6;
+        }
+
+        .achievement-card .achievement-icon {
+            font-size: 32px;
+            width: 48px;
+            text-align: center;
+        }
+
+        .achievement-card .achievement-info {
+            flex: 1;
+        }
+
+        .achievement-card .achievement-name {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .achievement-card .achievement-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .achievement-card .achievement-reward {
+            font-size: 11px;
+            color: var(--gold);
+            margin-top: 4px;
+        }
+
+        .achievement-card .achievement-status {
+            font-size: 20px;
+        }
+
+        /* 成就通知动画 */
+        .achievement-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+            border: 2px solid var(--gold);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
+            z-index: 9999;
+            animation: slideIn 0.5s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
+        }
+
+        .achievement-notification .achievement-icon {
+            font-size: 36px;
+        }
+
+        .achievement-notification .achievement-title {
+            font-size: 12px;
+            color: var(--gold);
+        }
+
+        .achievement-notification .achievement-name {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -668,6 +815,7 @@
             <div class="tab" onclick="switchTab('pills')">丹药</div>
             <div class="tab" onclick="switchTab('shop')">商店</div>
             <div class="tab" onclick="switchTab('encounter')">奇遇</div>
+            <div class="tab" onclick="switchTab('achievements')">🏆</div>
         </div>
 
         <!-- 主界面 -->
@@ -738,7 +886,7 @@
             </div>
 
             <div class="message" id="messageBox">
-                修炼中...灵气自动恢复，修为自动增长。
+                修炼中...灵气自动恢复,修为自动增长。
             </div>
         </div>
 
@@ -788,7 +936,7 @@
             <div class="info-section">
                 <div class="info-title">奇遇说明</div>
                 <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
-                    修炼过程中可能触发各种奇遇事件，获得机缘、遇到仙人、发现宝物或遭遇灾难。境界越高，触发概率越大。
+                    修炼过程中可能触发各种奇遇事件,获得机缘、遇到仙人、发现宝物或遭遇灾难。境界越高,触发概率越大。
                 </p>
             </div>
 
@@ -823,6 +971,16 @@
                 </div>
             </div>
         </div>
+
+        <!-- 成就界面 -->
+        <div id="achievements-tab" class="tab-content">
+            <div class="header">
+                <h2 class="title" style="font-size: 24px;">🏆 成就系统</h2>
+            </div>
+            <div id="achievementsList" class="achievements-container">
+                <!-- 成就列表 -->
+            </div>
+        </div>
     </div>
 
     <!-- 奇遇弹窗 -->
@@ -847,19 +1005,19 @@
         ];
 
         const SKILLS = [
-            { id: 1, name: '吐纳术', type: '被动', effect: '修炼速度+10%', multiplier: 1.1, cost: 100, desc: '最基础的吐纳之法，引导天地灵气入体' },
+            { id: 1, name: '吐纳术', type: '被动', effect: '修炼速度+10%', multiplier: 1.1, cost: 100, desc: '最基础的吐纳之法,引导天地灵气入体' },
             { id: 2, name: '引气诀', type: '被动', effect: '修炼速度+20%', multiplier: 1.2, cost: 300, desc: '引导灵气更快涌入丹田' },
             { id: 3, name: '凝神诀', type: '被动', effect: '修炼速度+30%', multiplier: 1.3, cost: 800, desc: '在周天形成小型灵气漩涡' },
-            { id: 4, name: '灵台清明', type: '被动', effect: '悟性+0.2', comprehensionBonus: 0.2, cost: 500, desc: '保持灵台清明，提升悟性' },
-            { id: 5, name: '炼体诀', type: '被动', effect: '资质+0.1', talentBonus: 0.1, cost: 600, desc: '锤炼肉身，提升资质' }
+            { id: 4, name: '灵台清明', type: '被动', effect: '悟性+0.2', comprehensionBonus: 0.2, cost: 500, desc: '保持灵台清明,提升悟性' },
+            { id: 5, name: '炼体诀', type: '被动', effect: '资质+0.1', talentBonus: 0.1, cost: 600, desc: '锤炼肉身,提升资质' }
         ];
 
         const PILLS = [
             { id: 1, name: '聚气丹', effect: '修为+100', cultivationBonus: 100, cost: 50, desc: '蕴含纯净灵气的聚气丹' },
             { id: 2, name: '涤神丹', effect: '悟性临时+0.5(5分钟)', tempComprehension: 0.5, duration: 300, cost: 100, desc: '暂时提升悟性的丹药' },
-            { id: 3, name: '洗髓丹', effect: '资质永久+0.05', permanentTalent: 0.05, cost: 500, desc: '洗髓伐毛，提升先天资质' },
+            { id: 3, name: '洗髓丹', effect: '资质永久+0.05', permanentTalent: 0.05, cost: 500, desc: '洗髓伐毛,提升先天资质' },
             { id: 4, name: '筑基丹', effect: '突破成功率+10%', breakthroughBonus: 10, cost: 200, desc: '辅助筑基的反哺丹药' },
-            { id: 5, name: '悟道丹', effect: '修为+500', cultivationBonus: 500, cost: 300, desc: '借道悟道，收益颇丰' }
+            { id: 5, name: '悟道丹', effect: '修为+500', cultivationBonus: 500, cost: 300, desc: '借道悟道,收益颇丰' }
         ];
 
         const SHOP_ITEMS = [
@@ -873,14 +1031,14 @@
         // 奇遇数据 - 15个奇遇事件
         const ENCOUNTERS = [
             // 机缘类 (34%)
-            { id: 1, name: '仙人指路', category: 'opportunity', icon: '🌟', weight: 12, 
-              desc: '一位白发仙人出现在梦中，指点你修炼之道',
+            { id: 1, name: '仙人指路', category: 'opportunity', icon: '🌟', weight: 12,
+              desc: '一位白发仙人出现在梦中,指点你修炼之道',
               effects: [
                 { type: 'cultivation', value: 500, text: '修为 +500' },
                 { type: 'comprehension_temp', value: 0.3, duration: 180, text: '悟性临时 +0.3 (3分钟)' }
               ] },
             { id: 2, name: '天降灵雨', category: 'opportunity', icon: '🌧️', weight: 11,
-              desc: '一场蕴含浓郁灵气的灵雨降临，你沐浴其中',
+              desc: '一场蕴含浓郁灵气的灵雨降临,你沐浴其中',
               effects: [
                 { type: 'cultivation', value: 300, text: '修为 +300' },
                 { type: 'spirit', value: 50, text: '灵气 +50' }
@@ -894,19 +1052,19 @@
 
             // 遇仙类 (27%)
             { id: 4, name: '药老赠丹', category: 'immortal', icon: '🧙', weight: 9,
-              desc: '一位炼丹宗师路过，赐予你一瓶珍贵的丹药',
+              desc: '一位炼丹宗师路过,赐予你一瓶珍贵的丹药',
               effects: [
                 { type: 'pill', pillId: 1, count: 3, text: '聚气丹 x3' },
                 { type: 'cultivation', value: 100, text: '修为 +100' }
               ] },
             { id: 5, name: '剑仙指点', category: 'immortal', icon: '⚔️', weight: 9,
-              desc: '一位剑道宗师见你天资不错，指点你剑道奥秘',
+              desc: '一位剑道宗师见你天资不错,指点你剑道奥秘',
               effects: [
                 { type: 'cultivation', value: 200, text: '修为 +200' },
                 { type: 'spiritStones', value: 100, text: '灵石 +100' }
               ] },
             { id: 6, name: '散仙遗府', category: 'immortal', icon: '🏯', weight: 9,
-              desc: '你发现了一处散仙遗留的洞府，获得其部分遗产',
+              desc: '你发现了一处散仙遗留的洞府,获得其部分遗产',
               effects: [
                 { type: 'spiritStones', value: 300, text: '灵石 +300' },
                 { type: 'talent', value: 0.05, text: '资质永久 +0.05' }
@@ -914,19 +1072,19 @@
 
             // 寻宝类 (17%)
             { id: 7, name: '灵泉涌动', category: 'treasure', icon: '💧', weight: 6,
-              desc: '你发现一处隐秘灵泉，泉水蕴含丰富灵气',
+              desc: '你发现一处隐秘灵泉,泉水蕴含丰富灵气',
               effects: [
                 { type: 'cultivation', value: 150, text: '修为 +150' },
                 { type: 'spirit', value: 30, text: '灵气 +30' }
               ] },
             { id: 8, name: '灵石矿脉', category: 'treasure', icon: '💎', weight: 6,
-              desc: '你意外发现一条小型灵石矿脉，收获颇丰',
+              desc: '你意外发现一条小型灵石矿脉,收获颇丰',
               effects: [
                 { type: 'spiritStones', value: 80, text: '灵石 +80' },
                 { type: 'cultivation', value: 50, text: '修为 +50' }
               ] },
             { id: 9, name: '灵草园', category: 'treasure', icon: '🌿', weight: 5,
-              desc: '你发现一片灵草园，采得几株珍稀灵草',
+              desc: '你发现一片灵草园,采得几株珍稀灵草',
               effects: [
                 { type: 'pill', pillId: 5, count: 1, text: '悟道丹 x1' },
                 { type: 'cultivation', value: 80, text: '修为 +80' }
@@ -934,18 +1092,18 @@
 
             // 历练类 (10%)
             { id: 10, name: '悟道片刻', category: 'trial', icon: '🧘', weight: 4,
-              desc: '修炼中忽有所悟，进入短暂的悟道状态',
+              desc: '修炼中忽有所悟,进入短暂的悟道状态',
               effects: [
                 { type: 'cultivation', value: 100, text: '修为 +100' },
                 { type: 'comprehension_temp', value: 0.2, duration: 120, text: '悟性临时 +0.2 (2分钟)' }
               ] },
             { id: 11, name: '突破瓶颈', category: 'trial', icon: '🔓', weight: 3,
-              desc: '你感到修炼瓶颈松动，坚持下去必有所获',
+              desc: '你感到修炼瓶颈松动,坚持下去必有所获',
               effects: [
                 { type: 'cultivation', value: 200, text: '修为 +200' }
               ] },
             { id: 12, name: '灵气充沛', category: 'trial', icon: '✨', weight: 3,
-              desc: '此处灵气格外充沛，修炼效率提升',
+              desc: '此处灵气格外充沛,修炼效率提升',
               effects: [
                 { type: 'cultivation', value: 80, text: '修为 +80' },
                 { type: 'spirit', value: 20, text: '灵气 +20' }
@@ -953,24 +1111,60 @@
 
             // 灾难类 (12%)
             { id: 13, name: '妖兽袭击', category: 'disaster', icon: '👹', weight: 5,
-              desc: '一只妖兽突然袭击，虽然击退但受了轻伤',
+              desc: '一只妖兽突然袭击,虽然击退但受了轻伤',
               effects: [
                 { type: 'cultivation', value: -100, text: '修为 -100' },
                 { type: 'spirit', value: -20, text: '灵气 -20' }
               ] },
             { id: 14, name: '心魔入侵', category: 'disaster', weight: 4,
-              icon: '😈', desc: '修炼时心魔入侵，扰乱心神',
+              icon: '😈', desc: '修炼时心魔入侵,扰乱心神',
               effects: [
                 { type: 'cultivation', value: -150, text: '修为 -150' },
                 { type: 'comprehension', value: -0.1, duration: 300, text: '悟性临时 -0.1 (5分钟)' }
               ] },
             { id: 15, name: '走火入魔', category: 'disaster', icon: '💀', weight: 3,
-              desc: '修炼方法有误，差点走火入魔',
+              desc: '修炼方法有误,差点走火入魔',
               effects: [
                 { type: 'cultivation', value: -200, text: '修为 -200' },
                 { type: 'spirit', value: -30, text: '灵气 -30' }
               ] }
         ];
+
+        // 成就数据 - 12个成就
+        const ACHIEVEMENTS = [
+            // 修炼成就
+            { id: 'first_cultivate', name: '初入修仙', desc: '首次修炼', icon: '🎮', category: 'cultivation',
+              reward: { spiritStones: 50 }, condition: (pd) => pd.stats.totalCultivation >= 1 },
+            { id: 'cultivate_1k', name: '初窥门径', desc: '累计修炼1000修为', icon: '📈', category: 'cultivation',
+              reward: { spiritStones: 100 }, condition: (pd) => pd.stats.totalCultivation >= 1000 },
+            { id: 'cultivate_10k', name: '修炼达人', desc: '累计修炼10000修为', icon: '🏆', category: 'cultivation',
+              reward: { spiritStones: 300 }, condition: (pd) => pd.stats.totalCultivation >= 10000 },
+            { id: 'cultivate_100k', name: '一代宗师', desc: '累计修炼100000修为', icon: '🌟', category: 'cultivation',
+              reward: { spiritStones: 1000 }, condition: (pd) => pd.stats.totalCultivation >= 100000 },
+            // 境界成就
+            { id: 'breakthrough_2', name: '炼气初期', desc: '突破到炼气2层', icon: '🔮', category: 'breakthrough',
+              reward: { spiritStones: 80 }, condition: (pd) => pd.realm >= 2 },
+            { id: 'breakthrough_5', name: '炼气后期', desc: '突破到炼气5层', icon: '💫', category: 'breakthrough',
+              reward: { spiritStones: 200 }, condition: (pd) => pd.realm >= 5 },
+            { id: 'breakthrough_10', name: '筑基成功', desc: '突破到筑基期', icon: '⚡', category: 'breakthrough',
+              reward: { pill: { id: 1, count: 3 } }, condition: (pd) => pd.realm >= 10 },
+            // 丹药成就
+            { id: 'first_pill', name: '初尝丹药', desc: '首次使用丹药', icon: '💊', category: 'pills',
+              reward: { spiritStones: 30 }, condition: (pd) => pd.stats.pillsUsed >= 1 },
+            { id: 'pills_10', name: '丹道入门', desc: '使用10次丹药', icon: '🧪', category: 'pills',
+              reward: { pill: { id: 2, count: 2 } }, condition: (pd) => pd.stats.pillsUsed >= 10 },
+            // 奇遇成就
+            { id: 'first_encounter', name: '初遇奇缘', desc: '首次触发奇遇', icon: '📜', category: 'encounter',
+              reward: { spiritStones: 50 }, condition: (pd) => pd.encounterHistory.length >= 1 },
+            { id: 'encounter_10', name: '奇遇连连', desc: '触发10次奇遇', icon: '🎲', category: 'encounter',
+              reward: { spiritStones: 200 }, condition: (pd) => pd.encounterHistory.length >= 10 },
+            // 财富成就
+            { id: 'spiritStones_1k', name: '小有积蓄', desc: '累计获得1000灵石', icon: '💰', category: 'wealth',
+              reward: { spiritStones: 100 }, condition: (pd) => pd.stats.totalSpiritStones >= 1000 },
+        ];
+
+        // 待解锁成就队列(用于显示动画)
+        let pendingAchievements = [];
 
         // 玩家数据
         let playerData = {
@@ -999,8 +1193,13 @@
                 immortal: 0,
                 treasure: 0,
                 trial: 0,
-                disaster: 0
-            }
+                disaster: 0,
+                // 成就追踪
+                totalCultivation: 0,  // 累计修炼修为
+                pillsUsed: 0,         // 已使用丹药次数
+                totalSpiritStones: 0   // 累计获得灵石
+            },
+            achievements: []  // 已解锁成就ID列表
         };
 
         let gameInterval = null;
@@ -1014,6 +1213,7 @@
             renderPills();
             renderShop();
             renderEncounter();
+            renderAchievements();
             calculateOfflineReward();
             startGameLoop();
         }
@@ -1022,20 +1222,144 @@
         function switchTab(tabName) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            
+
             event.target.classList.add('active');
             document.getElementById(`${tabName}-tab`).classList.add('active');
-            
+
             if (tabName === 'skills') renderSkills();
             if (tabName === 'pills') renderPills();
             if (tabName === 'shop') renderShop();
             if (tabName === 'encounter') renderEncounter();
+            if (tabName === 'achievements') renderAchievements();
+        }
+
+        // ==================== 成就系统 ====================
+
+        // 检查所有成就
+        function checkAchievements() {
+            ACHIEVEMENTS.forEach(ach => {
+                // 已解锁则跳过
+                if (playerData.achievements.includes(ach.id)) return;
+                // 检查条件
+                if (ach.condition(playerData)) {
+                    playerData.achievements.push(ach.id);
+                    pendingAchievements.push(ach);
+                    applyAchievementReward(ach);
+                }
+            });
+            // 显示通知
+            if (pendingAchievements.length > 0) {
+                showAchievementNotification();
+            }
+        }
+
+        // 应用成就奖励
+        function applyAchievementReward(ach) {
+            if (ach.reward.spiritStones) {
+                playerData.spiritStones += ach.reward.spiritStones;
+            }
+            if (ach.reward.pill) {
+                const pillId = ach.reward.pill.id;
+                const count = ach.reward.pill.count;
+                playerData.inventory[pillId] = (playerData.inventory[pillId] || 0) + count;
+            }
+        }
+
+        // 显示成就通知(栈式动画)
+        function showAchievementNotification() {
+            if (pendingAchievements.length === 0) return;
+            const ach = pendingAchievements.shift();
+
+            const notification = document.createElement('div');
+            notification.className = 'achievement-notification';
+            notification.innerHTML = `
+                <div class="achievement-icon">${ach.icon}</div>
+                <div class="achievement-text">
+                    <div class="achievement-title">成就解锁!</div>
+                    <div class="achievement-name">${ach.name}</div>
+                </div>
+            `;
+            document.body.appendChild(notification);
+
+            // 3秒后移除
+            setTimeout(() => {
+                notification.classList.add('fade-out');
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+
+            // 递归显示下一个
+            if (pendingAchievements.length > 0) {
+                setTimeout(showAchievementNotification, 3500);
+            }
+        }
+
+        // 渲染成就列表
+        function renderAchievements() {
+            const container = document.getElementById('achievementsList');
+            if (!container) return;
+
+            const unlocked = playerData.achievements.length;
+            const total = ACHIEVEMENTS.length;
+
+            // 统计各类别
+            const categories = {
+                cultivation: { name: '修炼', icon: '📈', unlocked: 0, total: 0 },
+                breakthrough: { name: '境界', icon: '🔮', unlocked: 0, total: 0 },
+                pills: { name: '丹药', icon: '💊', unlocked: 0, total: 0 },
+                encounter: { name: '奇遇', icon: '📜', unlocked: 0, total: 0 },
+                wealth: { name: '财富', icon: '💰', unlocked: 0, total: 0 }
+            };
+
+            ACHIEVEMENTS.forEach(ach => {
+                categories[ach.category].total++;
+                if (playerData.achievements.includes(ach.id)) {
+                    categories[ach.category].unlocked++;
+                }
+            });
+
+            container.innerHTML = `
+                <div class="achievement-summary">
+                    <div class="achievement-progress">
+                        <span class="progress-text">已解锁 ${unlocked}/${total}</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${(unlocked/total*100).toFixed(1)}%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="achievement-categories">
+                    ${Object.values(categories).map(cat => `
+                        <div class="category-badge">
+                            <span>${cat.icon} ${cat.name}</span>
+                            <span>${cat.unlocked}/${cat.total}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="achievement-list">
+                    ${ACHIEVEMENTS.map(ach => {
+                        const isUnlocked = playerData.achievements.includes(ach.id);
+                        let rewardText = '';
+                        if (ach.reward.spiritStones) rewardText = `+${ach.reward.spiritStones}灵石`;
+                        if (ach.reward.pill) rewardText = `+${ach.reward.pill.count}个${PILLS.find(p=>p.id===ach.reward.pill.id)?.name || '丹药'}`;
+                        return `
+                            <div class="achievement-card ${isUnlocked ? 'unlocked' : 'locked'}">
+                                <div class="achievement-icon">${ach.icon}</div>
+                                <div class="achievement-info">
+                                    <div class="achievement-name">${ach.name}</div>
+                                    <div class="achievement-desc">${ach.desc}</div>
+                                    ${rewardText ? `<div class="achievement-reward">奖励: ${rewardText}</div>` : ''}
+                                </div>
+                                <div class="achievement-status">${isUnlocked ? '✅' : '🔒'}</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
         }
 
         // 游戏主循环
         function startGameLoop() {
             if (gameInterval) clearInterval(gameInterval);
-            
+
             gameInterval = setInterval(() => {
                 // 灵气恢复
                 if (playerData.spirit < playerData.maxSpirit) {
@@ -1065,7 +1389,7 @@
             // 防止1分钟内重复触发
             if (now - lastEncounterTime < 60000) return;
 
-            // 基础概率1%，境界越高概率略有提升
+            // 基础概率1%,境界越高概率略有提升
             const baseChance = 0.01;
             const realmBonus = playerData.realm * 0.002;
             const chance = baseChance + realmBonus;
@@ -1109,8 +1433,8 @@
             const effectTexts = encounter.effects.map(e => e.text).join(' | ');
             const effectEl = document.getElementById('encounterEffect');
             effectEl.textContent = effectTexts;
-            effectEl.className = 'encounter-modal-effect ' + 
-                (encounter.category === 'disaster' ? 'negative' : 
+            effectEl.className = 'encounter-modal-effect ' +
+                (encounter.category === 'disaster' ? 'negative' :
                  encounter.category === 'trial' ? 'neutral' : 'positive');
 
             // 根据类型设置边框颜色
@@ -1172,6 +1496,7 @@
                     case 'spiritStones':
                         playerData.spiritStones = Math.max(0, playerData.spiritStones + effect.value);
                         if (effect.value > 0) {
+                            playerData.stats.totalSpiritStones += effect.value; // 成就追踪
                             createFloatingText(effect.text, 'gold');
                         }
                         break;
@@ -1193,7 +1518,7 @@
                         setTimeout(() => {
                             playerData.tempBuffs.comprehension -= effect.value;
                         }, (effect.duration || 60) * 1000);
-                        showMessage(`悟性临时 ${effect.value > 0 ? '+' : ''}${effect.value}，持续 ${Math.floor((effect.duration || 60) / 60)} 分钟`, 'success');
+                        showMessage(`悟性临时 ${effect.value > 0 ? '+' : ''}${effect.value},持续 ${Math.floor((effect.duration || 60) / 60)} 分钟`, 'success');
                         break;
 
                     case 'pill':
@@ -1216,8 +1541,11 @@
             // 更新奇遇界面
             renderEncounter();
 
+            // 检查成就（奇遇成就）
+            checkAchievements();
+
             // 显示消息
-            const msgType = encounter.category === 'disaster' ? 'fail' : 
+            const msgType = encounter.category === 'disaster' ? 'fail' :
                            encounter.category === 'trial' ? '' : 'success';
             showMessage(`触发奇遇: ${encounter.icon} ${encounter.name}`, msgType);
         }
@@ -1270,16 +1598,18 @@
         function cultivateTick() {
             const gain = getCultivationGain();
             playerData.cultivation += gain;
+            playerData.stats.totalCultivation += gain; // 成就追踪
             playerData.spirit = Math.max(0, playerData.spirit - getSpiritCost());
-            
+
             checkBreakthroughAvailability();
+            checkAchievements(); // 检查成就
         }
 
-        // 获取修为增益（包含功法加成）
+        // 获取修为增益(包含功法加成)
         function getCultivationGain() {
             const baseRate = 10;
             const realmBonus = REALMS[playerData.realm - 1].speedMultiplier;
-            
+
             // 功法加成
             let skillMultiplier = 1.0;
             playerData.equippedSkills.forEach(skillId => {
@@ -1288,8 +1618,8 @@
                     skillMultiplier *= skill.multiplier;
                 }
             });
-            
-            // 资质加成（包含永久提升）
+
+            // 资质加成(包含永久提升)
             let totalTalent = playerData.talent;
             playerData.equippedSkills.forEach(skillId => {
                 const skill = SKILLS.find(s => s.id === skillId);
@@ -1301,10 +1631,10 @@
             return Math.floor(baseRate * realmBonus * skillMultiplier * totalTalent);
         }
 
-        // 获取悟性（包含功法和临时buff）
+        // 获取悟性(包含功法和临时buff)
         function getTotalComprehension() {
             let total = playerData.comprehension;
-            
+
             // 功法加成
             playerData.equippedSkills.forEach(skillId => {
                 const skill = SKILLS.find(s => s.id === skillId);
@@ -1312,10 +1642,10 @@
                     total += skill.comprehensionBonus;
                 }
             });
-            
+
             // 临时buff
             total += playerData.tempBuffs.comprehension;
-            
+
             return total;
         }
 
@@ -1332,7 +1662,7 @@
             const nextRealm = REALMS[playerData.realm];
 
             if (!nextRealm || playerData.cultivation < nextRealm.requiredCultivation) {
-                showMessage('修为不足！', 'fail');
+                showMessage('修为不足!', 'fail');
                 return;
             }
 
@@ -1344,16 +1674,18 @@
                 playerData.cultivation = 0;
                 playerData.failedBreakthroughs = 0;
                 playerData.maxSpirit = 100 + playerData.realm * 10;
-                
-                showMessage(`恭喜突破至${REALMS[playerData.realm - 1].name}！`, 'success');
-                createFloatingText('突破成功！', 'purple');
-                
+
+                showMessage(`恭喜突破至${REALMS[playerData.realm - 1].name}!`, 'success');
+                createFloatingText('突破成功!', 'purple');
+
                 playerData.spiritStones += playerData.realm * 100;
+                playerData.stats.totalSpiritStones += playerData.realm * 100; // 成就追踪
+                checkAchievements(); // 检查境界成就
             } else {
                 playerData.cultivation = Math.floor(playerData.cultivation * 0.8);
                 playerData.failedBreakthroughs++;
-                
-                showMessage(`突破失败！损失20%修为，道心-5%`, 'fail');
+
+                showMessage(`突破失败!损失20%修为,道心-5%`, 'fail');
                 createFloatingText('突破失败', 'red');
             }
 
@@ -1376,17 +1708,17 @@
         function renderSkills() {
             const container = document.getElementById('skillsList');
             const maxSlots = REALMS[playerData.realm - 1].skillSlots;
-            
-            document.getElementById('skillSlots').textContent = 
+
+            document.getElementById('skillSlots').textContent =
                 `${playerData.equippedSkills.length}/${maxSlots}`;
 
             container.innerHTML = SKILLS.map(skill => {
                 const owned = playerData.ownedSkills.includes(skill.id);
                 const equipped = playerData.equippedSkills.includes(skill.id);
                 const canEquip = owned && !equipped && playerData.equippedSkills.length < maxSlots;
-                
+
                 return `
-                    <div class="skill-card ${equipped ? 'equipped' : ''}" 
+                    <div class="skill-card ${equipped ? 'equipped' : ''}"
                          onclick="${owned ? `toggleSkill(${skill.id})` : `buySkill(${skill.id})`}">
                         <div class="skill-header">
                             <span class="skill-name">${skill.name}</span>
@@ -1394,7 +1726,7 @@
                         </div>
                         <div class="skill-effect">${skill.effect}</div>
                         <div class="skill-desc">${skill.desc}</div>
-                        ${!owned ? `<div class="skill-cost">购买: ${skill.cost} 灵石</div>` : 
+                        ${!owned ? `<div class="skill-cost">购买: ${skill.cost} 灵石</div>` :
                           (equipped ? '<div style="color: var(--green); font-size: 12px; margin-top: 6px;">已装备</div>' :
                            '<div style="color: var(--text-secondary); font-size: 12px; margin-top: 6px;">点击装配</div>')}
                     </div>
@@ -1405,18 +1737,18 @@
         function buySkill(skillId) {
             const skill = SKILLS.find(s => s.id === skillId);
             if (!skill || playerData.ownedSkills.includes(skillId)) return;
-            
+
             if (playerData.spiritStones < skill.cost) {
-                showMessage('灵石不够！', 'fail');
+                showMessage('灵石不够!', 'fail');
                 return;
             }
-            
+
             playerData.spiritStones -= skill.cost;
             playerData.ownedSkills.push(skillId);
-            
-            showMessage(`获得「${skill.name}」！`, 'success');
-            createFloatingText('获得功法！', 'purple');
-            
+
+            showMessage(`获得「${skill.name}」!`, 'success');
+            createFloatingText('获得功法!', 'purple');
+
             updateUI();
             renderSkills();
             saveGame();
@@ -1425,13 +1757,13 @@
         function toggleSkill(skillId) {
             const maxSlots = REALMS[playerData.realm - 1].skillSlots;
             const index = playerData.equippedSkills.indexOf(skillId);
-            
+
             if (index > -1) {
                 playerData.equippedSkills.splice(index, 1);
             } else if (playerData.equippedSkills.length < maxSlots) {
                 playerData.equippedSkills.push(skillId);
             }
-            
+
             renderSkills();
             saveGame();
         }
@@ -1439,12 +1771,12 @@
         // 丹药系统
         function renderPills() {
             const container = document.getElementById('pillsList');
-            
+
             container.innerHTML = PILLS.map(pill => {
                 const count = playerData.inventory[pill.id] || 0;
-                
+
                 return `
-                    <div class="pill-card ${count === 0 ? 'empty' : ''}" 
+                    <div class="pill-card ${count === 0 ? 'empty' : ''}"
                          onclick="${count > 0 ? `usePill(${pill.id})` : ''}">
                         <div class="pill-header">
                             <span class="pill-name">${pill.name}</span>
@@ -1460,35 +1792,42 @@
         function usePill(pillId) {
             const pill = PILLS.find(p => p.id === pillId);
             if (!pill || !playerData.inventory[pillId]) return;
-            
+
             playerData.inventory[pillId]--;
-            
+
             // 应用效果
             if (pill.cultivationBonus) {
                 playerData.cultivation += pill.cultivationBonus;
                 createFloatingText(`+${pill.cultivationBonus} 修为`, 'gold');
             }
-            
+
             if (pill.tempComprehension) {
                 playerData.tempBuffs.comprehension += pill.tempComprehension;
                 setTimeout(() => {
                     playerData.tempBuffs.comprehension -= pill.tempComprehension;
                     updateUI();
                 }, pill.duration * 1000);
-                showMessage(`悟性临时提升${pill.tempComprehension}，持续${Math.floor(pill.duration / 60)}分钟`, 'success');
+                showMessage(`悟性临时提升${pill.tempComprehension},持续${Math.floor(pill.duration / 60)}分钟`, 'success');
             }
-            
+
             if (pill.permanentTalent) {
                 playerData.talent += pill.permanentTalent;
-                showMessage(`资质永久提升${pill.permanentTalent}！`, 'success');
-                createFloatingText('资质提升！', 'green');
+                showMessage(`资质永久提升${pill.permanentTalent}!`, 'success');
+                createFloatingText('资质提升!', 'green');
             }
-            
+
             if (pill.breakthroughBonus) {
                 playerData.tempBuffs.breakthrough += pill.breakthroughBonus;
                 showMessage(`下一次突破成功率+${pill.breakthroughBonus}%`, 'success');
             }
-            
+
+            // 成就追踪
+            playerData.stats.pillsUsed++;
+            if (pill.cultivationBonus) {
+                playerData.stats.totalCultivation += pill.cultivationBonus;
+            }
+            checkAchievements();
+
             updateUI();
             renderPills();
             saveGame();
@@ -1497,9 +1836,9 @@
         // 商店系统
         function renderShop() {
             const container = document.getElementById('shopList');
-            
+
             document.getElementById('shopSpiritStones').textContent = formatNumber(playerData.spiritStones);
-            
+
             container.innerHTML = SHOP_ITEMS.map(item => {
                 return `
                     <div class="shop-item" onclick="buyShopItem(${item.id})">
@@ -1516,27 +1855,28 @@
         function buyShopItem(itemId) {
             const item = SHOP_ITEMS.find(i => i.id === itemId);
             if (!item) return;
-            
+
             if (playerData.spiritStones < item.price) {
-                showMessage('灵石不够！', 'fail');
+                showMessage('灵石不够!', 'fail');
                 return;
             }
-            
+
             playerData.spiritStones -= item.price;
+            playerData.stats.totalSpiritStones += item.price; // 成就追踪
             
             if (item.type === 'pill') {
                 playerData.inventory[item.itemId] = (playerData.inventory[item.itemId] || 0) + 1;
-                showMessage(`购买成功！`, 'success');
+                showMessage(`购买成功!`, 'success');
             } else if (item.type === 'skill') {
                 if (!playerData.ownedSkills.includes(item.itemId)) {
                     playerData.ownedSkills.push(item.itemId);
-                    showMessage(`获得新功法！`, 'success');
+                    showMessage(`获得新功法!`, 'success');
                 } else {
-                    showMessage('已拥有该功法，购买无效退款', 'fail');
+                    showMessage('已拥有该功法,购买无效退款', 'fail');
                     playerData.spiritStones += item.price;
                 }
             }
-            
+
             updateUI();
             renderShop();
             saveGame();
@@ -1546,7 +1886,7 @@
         function checkBreakthroughAvailability() {
             const nextRealm = REALMS[playerData.realm];
             const btn = document.getElementById('breakthroughBtn');
-            
+
             if (nextRealm && playerData.cultivation >= nextRealm.requiredCultivation) {
                 btn.disabled = false;
             } else {
@@ -1575,7 +1915,7 @@
                 const progress = (playerData.cultivation / nextRealm.requiredCultivation) * 100;
                 document.getElementById('progressFill').style.width = `${Math.min(100, progress)}%`;
                 document.getElementById('progressPercent').textContent = `${Math.min(100, progress).toFixed(1)}%`;
-                document.getElementById('progressText').textContent = 
+                document.getElementById('progressText').textContent =
                     `${formatNumber(playerData.cultivation)} / ${formatNumber(nextRealm.requiredCultivation)}`;
             } else {
                 document.getElementById('progressFill').style.width = '100%';
@@ -1599,8 +1939,8 @@
             if (offlineSeconds > 60) {
                 const offlineGain = Math.floor(getCultivationGain() * offlineSeconds * 0.5);
                 playerData.cultivation += offlineGain;
-                
-                showMessage(`离线${formatTime(offlineSeconds)}，获得${formatNumber(offlineGain)}修为`, 'success');
+
+                showMessage(`离线${formatTime(offlineSeconds)},获得${formatNumber(offlineGain)}修为`, 'success');
             }
 
             playerData.lastOnlineTime = now;
@@ -1616,8 +1956,8 @@
             const el = document.createElement('div');
             el.className = 'floating-text';
             el.textContent = text;
-            el.style.color = color === 'gold' ? '#FFD700' : 
-                            color === 'purple' ? '#9B59B6' : 
+            el.style.color = color === 'gold' ? '#FFD700' :
+                            color === 'purple' ? '#9B59B6' :
                             color === 'green' ? '#2ECC71' : '#E74C3C';
             el.style.left = Math.random() * 300 + 100 + 'px';
             el.style.top = '300px';
@@ -1650,7 +1990,7 @@
             if (saved) {
                 const loaded = JSON.parse(saved);
                 playerData = { ...playerData, ...loaded };
-                
+
                 // 版本兼容
                 if (!playerData.inventory) playerData.inventory = {};
                 if (!playerData.tempBuffs) playerData.tempBuffs = { comprehension: 0, breakthrough: 0 };
