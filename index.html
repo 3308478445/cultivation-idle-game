@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>修仙放置游戏 v0.4</title>
+    <title>修仙放置游戏 v0.5</title>
     <style>
         * {
             margin: 0;
@@ -804,6 +804,62 @@
                 opacity: 0;
             }
         }
+
+        /* ==================== 宗门系统样式 ==================== */
+        .sect-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .sect-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .sect-card-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--gold);
+        }
+
+        .sect-card-level {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .sect-card-info {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .sect-task-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sect-task-info {
+            flex: 1;
+        }
+
+        .sect-task-name {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .sect-task-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
     </style>
 </head>
 <body>
@@ -816,6 +872,7 @@
             <div class="tab" onclick="switchTab('shop')">商店</div>
             <div class="tab" onclick="switchTab('encounter')">奇遇</div>
             <div class="tab" onclick="switchTab('achievements')">🏆</div>
+            <div class="tab" onclick="switchTab('sect')">宗门</div>
         </div>
 
         <!-- 主界面 -->
@@ -981,6 +1038,82 @@
                 <!-- 成就列表 -->
             </div>
         </div>
+
+        <!-- 宗门界面 -->
+        <div id="sect-tab" class="tab-content">
+            <div class="header">
+                <h2 class="title" style="font-size: 24px;">🏛️ 宗门系统</h2>
+            </div>
+            
+            <!-- 宗门信息 -->
+            <div id="sectInfo" style="display: none;">
+                <div class="info-section">
+                    <div class="info-title">我的宗门</div>
+                    <div style="text-align: center; margin-bottom: 12px;">
+                        <div id="sectName" style="font-size: 20px; color: var(--gold); margin-bottom: 8px;">-</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">
+                            宗门成员: <span id="sectMembers">0</span> | 
+                            宗门等级: <span id="sectLevel">1</span>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                            <span>宗门贡献</span>
+                            <span><span id="sectContrib">0</span> / <span id="sectContribNeed">1000</span></span>
+                        </div>
+                        <div class="progress-bar" style="height: 8px;">
+                            <div id="sectContribBar" class="progress-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="info-title">宗门商店</div>
+                    <div id="sectShopList" class="shop-section">
+                        <!-- 宗门商店列表 -->
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="info-title">每日任务</div>
+                    <div id="sectDailyTasks">
+                        <div class="info-title" style="font-size: 12px; color: var(--text-secondary);">
+                            任务每日0点重置 | 剩余次数: <span id="dailyTaskRemain">3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 16px;">
+                    <button class="btn btn-secondary" onclick="leaveSect()" style="padding: 8px 16px; font-size: 12px;">
+                        离开宗门
+                    </button>
+                </div>
+            </div>
+
+            <!-- 未加入宗门 -->
+            <div id="sectNoSect">
+                <div class="info-section">
+                    <div class="info-title">宗门列表</div>
+                    <div id="sectList" class="shop-section">
+                        <!-- 宗门列表 -->
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="info-title">创建宗门</div>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+                        消耗 <span style="color: var(--gold);">5000 灵石</span> 创建自己的宗门
+                    </p>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="sectCreateName" placeholder="宗门名称" 
+                               style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: var(--text-primary); font-size: 14px;">
+                        <button class="btn btn-primary" onclick="createSect()" style="padding: 10px 16px;">
+                            创建
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- 奇遇弹窗 -->
@@ -1130,6 +1263,44 @@
               ] }
         ];
 
+        // ==================== 宗门系统数据 ====================
+        
+        // 宗门列表（预设）
+        const PREDEFINED_SECTS = [
+            { id: 'sect_1', name: '太虚仙宗', level: 5, memberCount: 128, desc: '传承万年的正道巨擘' },
+            { id: 'sect_2', name: '天魔宫', level: 4, memberCount: 89, desc: '魔道第一势力' },
+            { id: 'sect_3', name: '青云门', level: 3, memberCount: 256, desc: '中土第一仙门' },
+            { id: 'sect_4', name: '万剑宗', level: 3, memberCount: 67, desc: '剑道宗门' },
+            { id: 'sect_5', name: '百花谷', level: 2, memberCount: 45, desc: '专注丹药与灵植' },
+            { id: 'sect_6', name: '散修联盟', level: 1, memberCount: 1024, desc: '散修互助组织' }
+        ];
+
+        // 宗门商店物品
+        const SECT_SHOP_ITEMS = [
+            { id: 'sect_pill_1', name: '聚元丹', desc: '修为 +500', price: 200, priceType: 'contrib', 
+              effect: { type: 'cultivation', value: 500 } },
+            { id: 'sect_pill_2', name: '筑基丹', desc: '突破成功率 +20%', price: 500, priceType: 'contrib',
+              effect: { type: 'breakthrough', value: 20 } },
+            { id: 'sect_pill_3', name: '培婴丹', desc: '资质 +0.1', price: 800, priceType: 'contrib',
+              effect: { type: 'talent', value: 0.1 } },
+            { id: 'sect_item_1', name: '灵气符', desc: '灵气恢复速度 +50% (10分钟)', price: 100, priceType: 'contrib',
+              effect: { type: 'spiritBoost', duration: 600 } },
+            { id: 'sect_item_2', name: '悟道茶', desc: '悟性 +2 (30分钟)', price: 150, priceType: 'contrib',
+              effect: { type: 'comprehension', value: 2, duration: 1800 } }
+        ];
+
+        // 每日任务
+        const DAILY_TASKS = [
+            { id: 'task_cultivate', name: '修炼', desc: '修炼1000修为', icon: '📿', 
+              target: 1000, type: 'cultivation', reward: { contrib: 50, spiritStones: 30 } },
+            { id: 'task_breakthrough', name: '突破', desc: '完成一次突破', icon: '⚡',
+              target: 1, type: 'breakthrough', reward: { contrib: 100, spiritStones: 50 } },
+            { id: 'task_encounter', name: '奇遇', desc: '触发2次奇遇', icon: '🌟',
+              target: 2, type: 'encounter', reward: { contrib: 30, spiritStones: 20 } },
+            { id: 'task_pill', name: '炼丹', desc: '使用3颗丹药', icon: '💊',
+              target: 3, type: 'pill', reward: { contrib: 40, spiritStones: 25 } }
+        ];
+
         // 成就数据 - 12个成就
         const ACHIEVEMENTS = [
             // 修炼成就
@@ -1199,7 +1370,14 @@
                 pillsUsed: 0,         // 已使用丹药次数
                 totalSpiritStones: 0   // 累计获得灵石
             },
-            achievements: []  // 已解锁成就ID列表
+            achievements: [],  // 已解锁成就ID列表
+            
+            // 宗门系统数据
+            sectId: null,           // 所属宗门ID
+            sectContrib: 0,         // 宗门贡献
+            sectContribToday: 0,    // 今日贡献
+            sectDailyTasks: {},     // 每日任务进度 { taskId: count }
+            sectLastResetDate: null // 上次重置日期
         };
 
         let gameInterval = null;
@@ -1231,6 +1409,7 @@
             if (tabName === 'shop') renderShop();
             if (tabName === 'encounter') renderEncounter();
             if (tabName === 'achievements') renderAchievements();
+            if (tabName === 'sect') renderSect();
         }
 
         // ==================== 成就系统 ====================
@@ -1354,6 +1533,297 @@
                     }).join('')}
                 </div>
             `;
+        }
+
+        // ==================== 宗门系统 ====================
+        
+        // 渲染宗门界面
+        function renderSect() {
+            const hasSect = playerData.sectId !== null;
+            document.getElementById('sectInfo').style.display = hasSect ? 'block' : 'none';
+            document.getElementById('sectNoSect').style.display = hasSect ? 'none' : 'block';
+            
+            if (hasSect) {
+                // 有宗门
+                const sect = getSectById(playerData.sectId);
+                if (sect) {
+                    document.getElementById('sectName').textContent = sect.name;
+                    document.getElementById('sectMembers').textContent = sect.memberCount || 1;
+                    document.getElementById('sectLevel').textContent = sect.level;
+                    document.getElementById('sectContrib').textContent = playerData.sectContrib;
+                    const contribNeed = 1000;
+                    document.getElementById('sectContribNeed').textContent = contribNeed;
+                    document.getElementById('sectContribBar').style.width = 
+                        Math.min(100, (playerData.sectContrib % contribNeed / contribNeed * 100)) + '%';
+                }
+                renderSectShop();
+                renderDailyTasks();
+            } else {
+                // 无宗门
+                renderSectList();
+            }
+        }
+
+        // 获取宗门信息
+        function getSectById(sectId) {
+            return PREDEFINED_SECTS.find(s => s.id === sectId);
+        }
+
+        // 渲染宗门列表
+        function renderSectList() {
+            const container = document.getElementById('sectList');
+            container.innerHTML = PREDEFINED_SECTS.map(sect => `
+                <div class="sect-card">
+                    <div class="sect-card-header">
+                        <span class="sect-card-name">${sect.name}</span>
+                        <span class="sect-card-level">Lv.${sect.level}</span>
+                    </div>
+                    <div class="sect-card-info">${sect.desc}</div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px;">
+                        <span style="color: var(--text-secondary);">成员: ${sect.memberCount}</span>
+                        <button class="btn btn-primary" onclick="joinSect('${sect.id}')" style="padding: 6px 12px; font-size: 12px;">
+                            加入
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 加入宗门
+        function joinSect(sectId) {
+            if (playerData.sectId !== null) {
+                showMessage('你已经在宗门中了！', 'fail');
+                return;
+            }
+            playerData.sectId = sectId;
+            playerData.sectContrib = 0;
+            playerData.sectDailyTasks = {};
+            playerData.sectLastResetDate = getToday();
+            
+            const sect = getSectById(sectId);
+            showMessage(`成功加入 ${sect.name}！`, 'success');
+            createFloatingText(`加入宗门: ${sect.name}`, 'gold');
+            
+            saveGame();
+            renderSect();
+        }
+
+        // 创建宗门
+        function createSect() {
+            const nameInput = document.getElementById('sectCreateName');
+            const name = nameInput.value.trim();
+            
+            if (!name) {
+                showMessage('请输入宗门名称！', 'fail');
+                return;
+            }
+            
+            if (name.length < 2 || name.length > 8) {
+                showMessage('宗门名称长度需在2-8字之间！', 'fail');
+                return;
+            }
+            
+            if (playerData.spiritStones < 5000) {
+                showMessage('灵石不足！需要5000灵石', 'fail');
+                return;
+            }
+            
+            playerData.spiritStones -= 5000;
+            playerData.sectContrib += 500;
+            
+            // 创建自定义宗门
+            const newSect = {
+                id: 'custom_' + Date.now(),
+                name: name,
+                level: 1,
+                memberCount: 1,
+                desc: '玩家创建的宗门',
+                isCustom: true
+            };
+            
+            // 添加到宗门列表
+            PREDEFINED_SECTS.unshift(newSect);
+            
+            playerData.sectId = newSect.id;
+            playerData.sectDailyTasks = {};
+            playerData.sectLastResetDate = getToday();
+            
+            showMessage(`宗门「${name}」创建成功！`, 'success');
+            createFloatingText('宗门创建成功！', 'gold');
+            
+            saveGame();
+            renderSect();
+            updateUI();
+        }
+
+        // 离开宗门
+        function leaveSect() {
+            if (playerData.sectId === null) return;
+            if (!confirm('确定要离开宗门吗？')) return;
+            
+            playerData.sectId = null;
+            playerData.sectContrib = 0;
+            playerData.sectDailyTasks = {};
+            
+            showMessage('已离开宗门', '');
+            saveGame();
+            renderSect();
+        }
+
+        // 渲染宗门商店
+        function renderSectShop() {
+            const container = document.getElementById('sectShopList');
+            container.innerHTML = SECT_SHOP_ITEMS.map(item => `
+                <div class="shop-item" onclick="buySectItem('${item.id}')">
+                    <div class="shop-item-header">
+                        <span class="shop-item-name">${item.name}</span>
+                        <span class="shop-item-price">${item.price} 贡献</span>
+                    </div>
+                    <div class="shop-item-desc">${item.desc}</div>
+                </div>
+            `).join('');
+        }
+
+        // 购买宗门物品
+        function buySectItem(itemId) {
+            if (playerData.sectId === null) {
+                showMessage('请先加入宗门！', 'fail');
+                return;
+            }
+            
+            const item = SECT_SHOP_ITEMS.find(i => i.id === itemId);
+            if (!item) return;
+            
+            if (playerData.sectContrib < item.price) {
+                showMessage('贡献不足！', 'fail');
+                return;
+            }
+            
+            playerData.sectContrib -= item.price;
+            
+            // 应用效果
+            switch (item.effect.type) {
+                case 'cultivation':
+                    playerData.cultivation += item.effect.value;
+                    playerData.stats.totalCultivation += item.effect.value;
+                    createFloatingText(`+${item.effect.value}修为`, 'gold');
+                    break;
+                case 'breakthrough':
+                    playerData.tempBuffs.breakthrough += item.effect.value;
+                    showMessage(`突破成功率+${item.effect.value}%`, 'success');
+                    break;
+                case 'talent':
+                    playerData.talent += item.effect.value;
+                    showMessage(`资质+${item.effect.value}`, 'success');
+                    createFloatingText('资质提升！', 'green');
+                    break;
+                case 'spiritBoost':
+                    playerData.tempBuffs.spiritBoost = (playerData.tempBuffs.spiritBoost || 0) + item.effect.duration;
+                    showMessage('灵气恢复加速生效中！', 'success');
+                    break;
+                case 'comprehension':
+                    playerData.tempBuffs.comprehension += item.effect.value;
+                    setTimeout(() => {
+                        playerData.tempBuffs.comprehension -= item.effect.value;
+                        updateUI();
+                    }, item.effect.duration * 1000);
+                    showMessage(`悟性+${item.effect.value}，持续${Math.floor(item.effect.duration/60)}分钟`, 'success');
+                    break;
+            }
+            
+            checkAchievements();
+            saveGame();
+            renderSect();
+            updateUI();
+        }
+
+        // 渲染每日任务
+        function renderDailyTasks() {
+            checkDailyTasksReset();
+            
+            const container = document.getElementById('sectDailyTasks');
+            const remainCount = Math.max(0, 3 - playerData.sectContribToday);
+            container.innerHTML = `
+                <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">
+                    任务每日0点重置 | 剩余次数: ${remainCount}
+                </div>
+                ${DAILY_TASKS.map(task => {
+                    const progress = playerData.sectDailyTasks[task.id] || 0;
+                    const completed = progress >= task.target;
+                    const canClaim = !completed && remainCount > 0;
+                    return `
+                        <div class="sect-task-card">
+                            <div class="sect-task-info">
+                                <div class="sect-task-name">${task.icon} ${task.name} <span style="color: ${completed ? 'var(--green)' : 'var(--text-secondary)'}">(${progress}/${task.target})</span></div>
+                                <div class="sect-task-desc">${task.desc} | 奖励: ${task.reward.contrib}贡献 + ${task.reward.spiritStones}灵石</div>
+                            </div>
+                            ${completed ? '<span style="color: var(--green);">✅</span>' : 
+                              `<button class="btn btn-primary" onclick="claimDailyTask('${task.id}')" style="padding: 4px 8px; font-size: 11px;" ${remainCount <= 0 ? 'disabled' : ''}>完成</button>`}
+                        </div>
+                    `;
+                }).join('')}
+            `;
+        }
+
+        // 检查每日任务重置
+        function checkDailyTasksReset() {
+            const today = getToday();
+            if (playerData.sectLastResetDate !== today) {
+                playerData.sectDailyTasks = {};
+                playerData.sectContribToday = 0;
+                playerData.sectLastResetDate = today;
+            }
+        }
+
+        // 领取每日任务奖励
+        function claimDailyTask(taskId) {
+            if (playerData.sectId === null) {
+                showMessage('请先加入宗门！', 'fail');
+                return;
+            }
+            
+            const task = DAILY_TASKS.find(t => t.id === taskId);
+            if (!task) return;
+            
+            const progress = playerData.sectDailyTasks[taskId] || 0;
+            if (progress < task.target) {
+                showMessage('任务未完成！', 'fail');
+                return;
+            }
+            
+            if (playerData.sectContribToday >= 3) {
+                showMessage('今日任务次数已用完！', 'fail');
+                return;
+            }
+            
+            playerData.sectContrib += task.reward.contrib;
+            playerData.sectContribToday++;
+            playerData.spiritStones += task.reward.spiritStones;
+            playerData.stats.totalSpiritStones += task.reward.spiritStones;
+            
+            showMessage(`任务完成！+${task.reward.contrib}贡献 +${task.reward.spiritStones}灵石`, 'success');
+            checkAchievements();
+            saveGame();
+            renderSect();
+            updateUI();
+        }
+
+        // 获取今日日期字符串
+        function getToday() {
+            const now = new Date();
+            return `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;
+        }
+
+        // 更新每日任务进度（由游戏循环调用）
+        function updateDailyTaskProgress(type, value) {
+            if (playerData.sectId === null) return;
+            checkDailyTasksReset();
+            
+            DAILY_TASKS.forEach(task => {
+                if (task.type === type) {
+                    playerData.sectDailyTasks[task.id] = (playerData.sectDailyTasks[task.id] || 0) + value;
+                }
+            });
         }
 
         // 游戏主循环
@@ -1543,6 +2013,7 @@
 
             // 检查成就（奇遇成就）
             checkAchievements();
+            updateDailyTaskProgress('encounter', 1); // 每日任务追踪
 
             // 显示消息
             const msgType = encounter.category === 'disaster' ? 'fail' :
@@ -1600,6 +2071,9 @@
             playerData.cultivation += gain;
             playerData.stats.totalCultivation += gain; // 成就追踪
             playerData.spirit = Math.max(0, playerData.spirit - getSpiritCost());
+            
+            // 每日任务进度
+            updateDailyTaskProgress('cultivation', gain);
 
             checkBreakthroughAvailability();
             checkAchievements(); // 检查成就
@@ -1681,6 +2155,7 @@
                 playerData.spiritStones += playerData.realm * 100;
                 playerData.stats.totalSpiritStones += playerData.realm * 100; // 成就追踪
                 checkAchievements(); // 检查境界成就
+                updateDailyTaskProgress('breakthrough', 1); // 每日任务追踪
             } else {
                 playerData.cultivation = Math.floor(playerData.cultivation * 0.8);
                 playerData.failedBreakthroughs++;
@@ -1827,6 +2302,7 @@
                 playerData.stats.totalCultivation += pill.cultivationBonus;
             }
             checkAchievements();
+            updateDailyTaskProgress('pill', 1); // 每日任务追踪
 
             updateUI();
             renderPills();
