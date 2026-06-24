@@ -42,6 +42,31 @@
         font-size: 22px;
     }
 
+    /* 太极图移动端适配 */
+    .taiji-container {
+        width: 140px;
+        height: 140px;
+    }
+
+    .taiji {
+        width: 100px;
+        height: 100px;
+    }
+
+    .taiji::before, .taiji::after {
+        width: 50px;
+        height: 50px;
+    }
+
+    .taiji-ring-svg {
+        width: 140px;
+        height: 140px;
+    }
+
+    .realm-name-display {
+        font-size: 18px;
+    }
+
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 8px;
@@ -63,6 +88,11 @@
         padding: 14px 12px;
         font-size: 14px;
         min-height: 48px;
+    }
+
+    .action-bar {
+        gap: 8px;
+        padding: 6px 8px;
     }
 
     .info-section {
@@ -98,15 +128,6 @@
         margin-bottom: 8px;
     }
 
-    .inventory-grid {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 6px;
-    }
-
-    .inventory-slot {
-        min-height: 60px;
-    }
-
     .encounter-modal-content {
         padding: 16px;
         margin: 20px;
@@ -133,18 +154,6 @@
     .info-section[style*="margin-top"] .btn {
         padding: 12px 10px;
         font-size: 13px;
-    }
-
-    .story-item {
-        padding: 12px;
-    }
-
-    .story-title {
-        font-size: 14px;
-    }
-
-    .story-desc {
-        font-size: 12px;
     }
 
     #cloud-tab .info-section {
@@ -195,8 +204,24 @@
         font-size: 13px;
     }
 
-    .inventory-grid {
-        grid-template-columns: repeat(3, 1fr);
+    .taiji-container {
+        width: 120px;
+        height: 120px;
+    }
+
+    .taiji {
+        width: 85px;
+        height: 85px;
+    }
+
+    .taiji::before, .taiji::after {
+        width: 42px;
+        height: 42px;
+    }
+
+    .taiji-ring-svg {
+        width: 120px;
+        height: 120px;
     }
 }
 
@@ -227,6 +252,26 @@
     .tab-content {
         max-height: calc(100vh - 120px);
     }
+
+    .taiji-container {
+        width: 100px;
+        height: 100px;
+    }
+
+    .taiji {
+        width: 70px;
+        height: 70px;
+    }
+
+    .taiji::before, .taiji::after {
+        width: 35px;
+        height: 35px;
+    }
+
+    .taiji-ring-svg {
+        width: 100px;
+        height: 100px;
+    }
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -243,9 +288,5 @@
     .pill-card:active,
     .shop-item:active {
         transform: scale(0.98);
-    }
-
-    .inventory-slot:active {
-        background: rgba(95, 176, 168, 0.2);
     }
 }

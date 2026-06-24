@@ -43,6 +43,8 @@ body {
     align-items: center;
     padding: 20px;
     overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 /* 滚动条美化 */

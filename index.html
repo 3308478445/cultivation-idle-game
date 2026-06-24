@@ -2,9 +2,13 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>修仙放置游戏 v0.9</title>
-    <!-- 二次元修真风格 CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0a1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>修仙放置游戏 v1.0</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="game_logo.png">
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/components.css">
@@ -34,6 +38,40 @@
             <div class="header">
                 <h1 class="title">修仙放置游戏</h1>
                 <div class="realm-badge" id="realmBadge">炼气境</div>
+            </div>
+
+            <!-- 太极丹田图 -->
+            <div class="taiji-section">
+                <div class="taiji-container" id="taijiContainer">
+                    <svg class="taiji-ring-svg" width="180" height="180" viewBox="0 0 180 180">
+                        <!-- 背景圆环 -->
+                        <circle cx="90" cy="90" r="80" fill="none" stroke="rgba(95,176,168,0.1)" stroke-width="4"/>
+                        <!-- 进度圆环 -->
+                        <circle id="taijiRing" cx="90" cy="90" r="80" fill="none" 
+                            stroke="url(#taijiGradient)" stroke-width="4" 
+                            stroke-linecap="round"
+                            stroke-dasharray="502.65"
+                            stroke-dashoffset="502.65"
+                            transform="rotate(-90 90 90)"/>
+                        <defs>
+                            <linearGradient id="taijiGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#5fb0a8"/>
+                                <stop offset="50%" stop-color="#7b5ea7"/>
+                                <stop offset="100%" stop-color="#e8c547"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <!-- CSS太极图 -->
+                    <div class="taiji" id="taijiFig">
+                        <div class="taiji-yang"></div>
+                        <div class="taiji-yin"></div>
+                        <div class="taiji-dot-yang"></div>
+                        <div class="taiji-dot-yin"></div>
+                    </div>
+                </div>
+                <div class="taiji-percent" id="taijiPercent">0%</div>
+                <div class="realm-name-display" id="realmNameDisplay">炼气1层</div>
+                <div class="cultivation-num" id="cultivationNum">0 / 1,000</div>
             </div>
 
             <div class="stats-grid">
@@ -67,9 +105,22 @@
             </div>
 
             <div class="action-buttons">
-                <button class="btn btn-breakthrough" id="breakthroughBtn" onclick="attemptBreakthrough()" disabled>
-                    突破
+                <button class="btn btn-cultivate" id="cultivateBtn" onclick="manualCultivate()">
+                    📿 修炼
                 </button>
+                <button class="btn btn-breakthrough" id="breakthroughBtn" onclick="attemptBreakthrough()" disabled>
+                    ⚡ 突破
+                </button>
+            </div>
+
+            <!-- 自动修炼开关 + 静音 + 分享 -->
+            <div class="action-bar">
+                <div class="auto-cultivate-toggle">
+                    <span style="font-size:13px;color:var(--text-secondary);">自动修炼</span>
+                    <div class="toggle-switch" id="autoToggle" onclick="toggleAutoCultivate()"></div>
+                </div>
+                <button class="icon-btn" id="muteBtn" onclick="toggleMute()" title="静音">🔊</button>
+                <button class="icon-btn" onclick="shareResult()" title="分享">📤</button>
             </div>
 
             <div class="info-section">
@@ -79,7 +130,7 @@
                 <div class="info-grid">
                     <div class="info-item">
                         <span>修炼速度:</span>
-                        <span id="cultivationSpeed">10/秒</span>
+                        <span id="cultivationSpeed">5/秒</span>
                     </div>
                     <div class="info-item">
                         <span>灵气恢复:</span>
@@ -124,23 +175,20 @@
             <div class="header">
                 <h2 class="title" style="font-size: 24px;">功法阁</h2>
                 <p style="font-size: 14px; color: var(--text-secondary);">当前槽位: <span id="skillSlots">0/3</span></p>
+                <p style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                    凡品(白) → 灵品(绿) → 玄品(蓝) → 地品(紫) → 天品(金)
+                </p>
             </div>
-
-            <div class="skills-section" id="skillsList">
-                <!-- 功法列表 -->
-            </div>
+            <div class="skills-section" id="skillsList"></div>
         </div>
 
         <!-- 丹药界面 -->
         <div id="pills-tab" class="tab-content">
             <div class="header">
                 <h2 class="title" style="font-size: 24px;">丹药阁</h2>
-                <p style="font-size: 14px; color: var(--text-secondary);">丹药可以暂时或永久提升属性</p>
+                <p style="font-size: 14px; color: var(--text-secondary);">炼制丹药,品质决定效果</p>
             </div>
-
-            <div class="pills-section" id="pillsList">
-                <!-- 丹药列表 -->
-            </div>
+            <div class="pills-section" id="pillsList"></div>
         </div>
 
         <!-- 商店界面 -->
@@ -149,10 +197,7 @@
                 <h2 class="title" style="font-size: 24px;">灵石商店</h2>
                 <p style="font-size: 14px; color: var(--text-secondary);">灵石: <span id="shopSpiritStones">0</span></p>
             </div>
-
-            <div class="shop-section" id="shopList">
-                <!-- 商店列表 -->
-            </div>
+            <div class="shop-section" id="shopList"></div>
         </div>
 
         <!-- 奇遇界面 -->
@@ -165,7 +210,7 @@
             <div class="info-section">
                 <div class="info-title">奇遇说明</div>
                 <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
-                    修炼过程中可能触发各种奇遇事件,获得机缘、遇到仙人、发现宝物或遭遇灾难。境界越高,触发概率越大。
+                    修炼过程中可能触发各种奇遇事件,获得机缘、遇到仙人、发现宝物或遭遇灾难。部分奇遇需要做出选择,不同选择有不同风险和奖励。境界越高,触发概率越大。
                 </p>
             </div>
 
@@ -179,11 +224,11 @@
             <div class="info-section">
                 <h3 style="font-size: 16px; margin-bottom: 12px;">奇遇类型</h3>
                 <div style="display: grid; gap: 8px; font-size: 13px;">
-                    <div style="color: #e8c547;">🌟 机缘 (34%) - 重大增益</div>
-                    <div style="color: #7b5ea7;">✨ 遇仙 (27%) - 中等增益</div>
-                    <div style="color: #5fb0a8;">💎 寻宝 (17%) - 小幅增益</div>
-                    <div style="color: #5fb0a8;">🧘 历练 (10%) - 考验类</div>
-                    <div style="color: #c0392b;">👹 灾难 (12%) - 负面效果</div>
+                    <div style="color: #e8c547;">🌟 机缘 - 重大增益</div>
+                    <div style="color: #7b5ea7;">✨ 遇仙 - 中等增益</div>
+                    <div style="color: #5fb0a8;">💎 寻宝 - 小幅增益</div>
+                    <div style="color: #5fb0a8;">🧘 历练 - 考验类</div>
+                    <div style="color: #c0392b;">👹 灾难 - 负面效果</div>
                 </div>
             </div>
 
@@ -204,11 +249,9 @@
         <!-- 成就界面 -->
         <div id="achievements-tab" class="tab-content">
             <div class="header">
-                <h2 class="title" style="font-size: 24px;">🏆 成就系统</h2>
+                <h2 class="title" style="font-size: 24px;">🏆 成就墙</h2>
             </div>
-            <div id="achievementsList" class="achievements-container">
-                <!-- 成就列表 -->
-            </div>
+            <div id="achievementsList" class="achievements-container"></div>
         </div>
 
         <!-- 宗门界面 -->
@@ -216,8 +259,6 @@
             <div class="header">
                 <h2 class="title" style="font-size: 24px;">🏛️ 宗门系统</h2>
             </div>
-            
-            <!-- 宗门信息 -->
             <div id="sectInfo" style="display: none;">
                 <div class="info-section">
                     <div class="info-title">我的宗门</div>
@@ -238,14 +279,10 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="info-section">
                     <div class="info-title">宗门商店</div>
-                    <div id="sectShopList" class="shop-section">
-                        <!-- 宗门商店列表 -->
-                    </div>
+                    <div id="sectShopList" class="shop-section"></div>
                 </div>
-
                 <div class="info-section">
                     <div class="info-title">每日任务</div>
                     <div id="sectDailyTasks">
@@ -254,23 +291,17 @@
                         </div>
                     </div>
                 </div>
-
                 <div style="text-align: center; margin-top: 16px;">
                     <button class="btn btn-secondary" onclick="leaveSect()" style="padding: 8px 16px; font-size: 12px;">
                         离开宗门
                     </button>
                 </div>
             </div>
-
-            <!-- 未加入宗门 -->
             <div id="sectNoSect">
                 <div class="info-section">
                     <div class="info-title">宗门列表</div>
-                    <div id="sectList" class="shop-section">
-                        <!-- 宗门列表 -->
-                    </div>
+                    <div id="sectList" class="shop-section"></div>
                 </div>
-
                 <div class="info-section">
                     <div class="info-title">创建宗门</div>
                     <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
@@ -293,8 +324,6 @@
         <div class="header">
             <h2 class="title" style="font-size: 24px;">⚗️ 法宝系统</h2>
         </div>
-        
-        <!-- 装备的法宝 -->
         <div class="info-section">
             <div class="info-title">🗡️ 已装备法宝</div>
             <div id="equippedArtifacts" style="display: flex; gap: 10px; flex-wrap: wrap; min-height: 60px; align-items: center; justify-content: center;">
@@ -303,31 +332,23 @@
                 <div class="artifact-slot empty-slot">+</div>
             </div>
         </div>
-
-        <!-- 法宝背包 -->
         <div class="info-section">
             <div class="info-title">📦 法宝背包</div>
             <div id="artifactInventory" style="display: flex; flex-direction: column; gap: 8px;">
                 <div style="text-align: center; color: var(--text-secondary); padding: 20px;">暂无法宝</div>
             </div>
         </div>
-
-        <!-- 炼器材料 -->
         <div class="info-section">
             <div class="info-title">🔩 炼器材料 (升级法宝用)</div>
-            <div id="artifactMaterials" style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
-            </div>
+            <div id="artifactMaterials" style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;"></div>
             <div style="font-size: 11px; color: var(--text-secondary); text-align: center;">
                 灵石: <span id="artifactStoneCount">0</span> |
                 <button class="btn btn-small" onclick="buyRandomMaterial()">购买玄铁(50灵石)</button>
             </div>
         </div>
-
-        <!-- 法宝商店 -->
         <div class="info-section">
             <div class="info-title">🏪 法宝商店</div>
-            <div id="artifactShop" style="display: flex; flex-direction: column; gap: 8px;">
-            </div>
+            <div id="artifactShop" style="display: flex; flex-direction: column; gap: 8px;"></div>
         </div>
     </div>
 
@@ -336,8 +357,6 @@
         <div class="header">
             <h2 class="title" style="font-size: 24px;">🐉 灵兽系统</h2>
         </div>
-
-        <!-- 灵兽小屋 -->
         <div class="info-section">
             <div class="info-title">🏠 我的灵兽</div>
             <div id="beastHouse" style="display: flex; flex-direction: column; gap: 10px;">
@@ -346,8 +365,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- 野外捕捉 -->
         <div class="info-section">
             <div class="info-title">🌲 野外捕捉</div>
             <div style="text-align: center; margin-bottom: 10px;">
@@ -359,12 +376,9 @@
                 野外可遇到随机灵兽,成功率与悟性相关
             </div>
         </div>
-
-        <!-- 灵兽商店 -->
         <div class="info-section">
             <div class="info-title">🏪 灵兽商店</div>
-            <div id="beastShop" style="display: flex; flex-direction: column; gap: 8px;">
-            </div>
+            <div id="beastShop" style="display: flex; flex-direction: column; gap: 8px;"></div>
         </div>
     </div>
 
@@ -373,8 +387,6 @@
         <div class="header">
             <h2 class="title" style="font-size: 24px;">🏠 洞府系统</h2>
         </div>
-
-        <!-- 洞府信息 -->
         <div class="info-section">
             <div class="info-title">🏡 洞府概况</div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; text-align: center;">
@@ -398,18 +410,13 @@
                 </div>
             </div>
         </div>
-
-        <!-- 灵草园 -->
         <div class="info-section">
             <div class="info-title">🌱 灵草园</div>
-            <div id="herbGarden" style="display:flex;flex-direction:column;gap:8px;">
-            </div>
+            <div id="herbGarden" style="display:flex;flex-direction:column;gap:8px;"></div>
             <div style="text-align:center;margin-top:8px;">
                 <button class="btn btn-small" onclick="buyHerbPlot()" id="buyPlotBtn">开垦新地块 (200灵石)</button>
             </div>
         </div>
-
-        <!-- 炼丹炉 -->
         <div class="info-section">
             <div class="info-title">🔥 炼丹炉</div>
             <div id="alchemyFurnace" style="text-align:center;padding:10px;background:rgba(255,255,255,0.05);border-radius:10px;">
@@ -424,12 +431,9 @@
                 <div style="font-size:11px;color:var(--text-secondary);margin-top:6px;">当前拥有: <span id="herbCount">0</span>灵草</div>
             </div>
         </div>
-
-        <!-- 洞府升级 -->
         <div class="info-section">
             <div class="info-title">⬆️ 洞府升级</div>
-            <div id="caveUpgrade" style="display:flex;flex-direction:column;gap:8px;">
-            </div>
+            <div id="caveUpgrade" style="display:flex;flex-direction:column;gap:8px;"></div>
         </div>
     </div>
 
@@ -438,19 +442,13 @@
         <div class="header">
             <h2 class="title" style="font-size: 24px;">📜 修仙剧情</h2>
         </div>
-
-        <!-- 当前境界剧情 -->
         <div class="info-section">
             <div class="info-title">🌟 当前境界</div>
-            <div id="currentRealmStory" style="padding: 15px; background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-            </div>
+            <div id="currentRealmStory" style="padding: 15px; background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);"></div>
         </div>
-
-        <!-- 剧情章节列表 -->
         <div class="info-section">
             <div class="info-title">📖 章节列表 <span id="storyProgress" style="font-size:12px;color:var(--text-secondary);font-weight:normal;"></span></div>
-            <div id="storyList" style="display: flex; flex-direction: column; gap: 8px;">
-            </div>
+            <div id="storyList" style="display: flex; flex-direction: column; gap: 8px;"></div>
         </div>
     </div>
 
@@ -459,8 +457,6 @@
         <div class="header">
             <h2 class="title" style="font-size: 24px;">☁️ 云端同步</h2>
         </div>
-
-        <!-- GitHub Token 设置 -->
         <div class="info-section">
             <div class="info-title">
                 <span>🔑 GitHub Token</span>
@@ -479,8 +475,6 @@
                 保存 Token
             </button>
         </div>
-
-        <!-- 云端同步开关 -->
         <div class="info-section">
             <div class="info-title">
                 <span>📡 自动同步</span>
@@ -490,12 +484,8 @@
                 开启后每 60 秒自动保存到 GitHub Gist
             </div>
         </div>
-
-        <!-- 手动同步按钮 -->
         <div class="info-section">
-            <div class="info-title">
-                <span>🔄 手动同步</span>
-            </div>
+            <div class="info-title"><span>🔄 手动同步</span></div>
             <div style="display: flex; gap: 10px;">
                 <button class="btn btn-cultivate" onclick="manualUpload()" style="flex:1;">
                     ⬆️ 上传存档
@@ -505,22 +495,14 @@
                 </button>
             </div>
         </div>
-
-        <!-- 同步状态 -->
         <div class="info-section">
-            <div class="info-title">
-                <span>📋 同步状态</span>
-            </div>
+            <div class="info-title"><span>📋 同步状态</span></div>
             <div id="syncStatus" style="font-size: 13px; color: var(--text-secondary);">
                 尚未同步
             </div>
         </div>
-
-        <!-- Gist 信息 -->
         <div class="info-section" id="gistInfoSection" style="display: none;">
-            <div class="info-title">
-                <span>🔗 Gist 链接</span>
-            </div>
+            <div class="info-title"><span>🔗 Gist 链接</span></div>
             <div id="gistLink" style="font-size: 12px; word-break: break-all;"></div>
         </div>
     </div>
@@ -561,6 +543,7 @@
 
     <!-- JS 模块（加载顺序很重要） -->
     <script src="js/core.js"></script>
+    <script src="js/audio.js"></script>
     <script src="js/cultivation.js"></script>
     <script src="js/skills.js"></script>
     <script src="js/pills.js"></script>
@@ -574,5 +557,38 @@
     <script src="js/story.js"></script>
     <script src="js/cloud.js"></script>
     <script src="js/ui.js"></script>
+    <script>
+        // Service Worker 注册
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                const CACHE_NAME = 'cultivation-game-v1';
+                const urlsToCache = [
+                    './', './index.html',
+                    './css/base.css', './css/layout.css', './css/components.css',
+                    './css/animations.css', './css/responsive.css',
+                    './js/core.js', './js/audio.js', './js/cultivation.js',
+                    './js/skills.js', './js/pills.js', './js/shop.js',
+                    './js/encounter.js', './js/achievements.js', './js/sect.js',
+                    './js/artifact.js', './js/beast.js', './js/cave.js',
+                    './js/story.js', './js/cloud.js', './js/ui.js',
+                    './game_logo.png'
+                ];
+                self.addEventListener('install', e => {
+                    e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache).catch(()=>{})));
+                    self.skipWaiting();
+                });
+                self.addEventListener('activate', e => {
+                    e.waitUntil(caches.keys().then(names => Promise.all(names.map(n => n !== CACHE_NAME ? caches.delete(n) : null))));
+                    self.clients.claim();
+                });
+                self.addEventListener('fetch', e => {
+                    e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+                });
+            `;
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl).catch(() => {});
+        }
+    </script>
 </body>
 </html>

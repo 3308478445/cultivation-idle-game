@@ -1,20 +1,71 @@
 // ==================== core.js — 游戏核心：数据定义、存档、主循环 ====================
 
-// 游戏配置
+// 游戏配置 — 境界扩展：每个大境界分9小层
 const REALMS = [
-    { id: 1, name: '炼气境', requiredCultivation: 0, speedMultiplier: 1.0, skillSlots: 1 },
-    { id: 2, name: '筑基境', requiredCultivation: 1000, speedMultiplier: 1.5, skillSlots: 2 },
-    { id: 3, name: '金丹境', requiredCultivation: 5000, speedMultiplier: 2.0, skillSlots: 3 },
-    { id: 4, name: '元婴境', requiredCultivation: 25000, speedMultiplier: 3.0, skillSlots: 4 },
-    { id: 5, name: '化神境', requiredCultivation: 100000, speedMultiplier: 5.0, skillSlots: 5 }
+    { id: 1, name: '炼气境', shortName: '炼气', requiredCultivation: 0, nextRealmCultivation: 1000, speedMultiplier: 1.0, skillSlots: 1, breakthroughRate: 80 },
+    { id: 2, name: '筑基境', shortName: '筑基', requiredCultivation: 1000, nextRealmCultivation: 5000, speedMultiplier: 1.5, skillSlots: 2, breakthroughRate: 70 },
+    { id: 3, name: '金丹境', shortName: '金丹', requiredCultivation: 5000, nextRealmCultivation: 25000, speedMultiplier: 2.0, skillSlots: 3, breakthroughRate: 60 },
+    { id: 4, name: '元婴境', shortName: '元婴', requiredCultivation: 25000, nextRealmCultivation: 100000, speedMultiplier: 3.0, skillSlots: 4, breakthroughRate: 50 },
+    { id: 5, name: '化神境', shortName: '化神', requiredCultivation: 100000, nextRealmCultivation: 999999999, speedMultiplier: 5.0, skillSlots: 5, breakthroughRate: 40 }
 ];
 
+// 小层修为需求计算 — 指数级增长
+function getSubLevelCultivation(realmId, subLevel) {
+    const realm = REALMS.find(r => r.id === realmId);
+    if (!realm) return 0;
+    if (subLevel >= 9) return realm.nextRealmCultivation;
+    // 每小层需要的修为：基础 * (1.5^subLevel)
+    const base = realm.requiredCultivation;
+    const nextBase = realm.nextRealmCultivation;
+    const range = nextBase - base;
+    // 9层累计 = range, 每层占比按指数增长
+    const ratio = (Math.pow(1.5, subLevel) - 1) / (Math.pow(1.5, 9) - 1);
+    return Math.floor(base + range * ratio);
+}
+
+// 获取当前境界+小层名称
+function getFullRealmName() {
+    const realm = REALMS[playerData.realm - 1];
+    const subLevel = playerData.subLevel || 1;
+    return `${realm.shortName}${subLevel}层`;
+}
+
+// 功法品阶颜色映射
+const SKILL_GRADES = {
+    '凡品': { color: '#aaa', border: 'rgba(170,170,170,0.5)', bg: 'rgba(170,170,170,0.1)' },
+    '灵品': { color: '#5fb0a8', border: 'rgba(95,176,168,0.5)', bg: 'rgba(95,176,168,0.1)' },
+    '玄品': { color: '#5b8def', border: 'rgba(91,141,239,0.5)', bg: 'rgba(91,141,239,0.1)' },
+    '地品': { color: '#9b59b6', border: 'rgba(155,89,182,0.5)', bg: 'rgba(155,89,182,0.1)' },
+    '天品': { color: '#e8c547', border: 'rgba(232,197,71,0.6)', bg: 'rgba(232,197,71,0.1)' }
+};
+
 const SKILLS = [
-    { id: 1, name: '吐纳术', type: '被动', effect: '修炼速度+10%', multiplier: 1.1, cost: 100, desc: '最基础的吐纳之法,引导天地灵气入体' },
-    { id: 2, name: '引气诀', type: '被动', effect: '修炼速度+20%', multiplier: 1.2, cost: 300, desc: '引导灵气更快涌入丹田' },
-    { id: 3, name: '凝神诀', type: '被动', effect: '修炼速度+30%', multiplier: 1.3, cost: 800, desc: '在周天形成小型灵气漩涡' },
-    { id: 4, name: '灵台清明', type: '被动', effect: '悟性+0.2', comprehensionBonus: 0.2, cost: 500, desc: '保持灵台清明,提升悟性' },
-    { id: 5, name: '炼体诀', type: '被动', effect: '资质+0.1', talentBonus: 0.1, cost: 600, desc: '锤炼肉身,提升资质' }
+    // 凡品
+    { id: 1, name: '吐纳术', type: '被动', grade: '凡品', effect: '修炼速度+10%', multiplier: 1.1, cost: 100, desc: '最基础的吐纳之法,引导天地灵气入体' },
+    { id: 2, name: '引气诀', type: '被动', grade: '凡品', effect: '修炼速度+20%', multiplier: 1.2, cost: 300, desc: '引导灵气更快涌入丹田' },
+    // 灵品
+    { id: 3, name: '凝神诀', type: '被动', grade: '灵品', effect: '修炼速度+30%', multiplier: 1.3, cost: 800, desc: '在周天形成小型灵气漩涡' },
+    { id: 4, name: '灵台清明', type: '被动', grade: '灵品', effect: '悟性+0.2', comprehensionBonus: 0.2, cost: 500, desc: '保持灵台清明,提升悟性' },
+    { id: 5, name: '炼体诀', type: '被动', grade: '灵品', effect: '资质+0.1', talentBonus: 0.1, cost: 600, desc: '锤炼肉身,提升资质' },
+    // 玄品
+    { id: 6, name: '紫气东来', type: '被动', grade: '玄品', effect: '修炼速度+45%', multiplier: 1.45, cost: 2000, desc: '每日紫气东来,修炼事半功倍' },
+    { id: 7, name: '天眼通', type: '被动', grade: '玄品', effect: '悟性+0.5', comprehensionBonus: 0.5, cost: 1500, desc: '开启天眼,洞察天地至理' },
+    // 地品
+    { id: 8, name: '混元功', type: '被动', grade: '地品', effect: '修炼速度+70%', multiplier: 1.7, cost: 5000, desc: '混元之力,周天大圆满' },
+    { id: 9, name: '九转金身', type: '被动', grade: '地品', effect: '资质+0.3,悟性+0.3', talentBonus: 0.3, comprehensionBonus: 0.3, cost: 4000, desc: '九转成金,肉身成圣' },
+    // 天品
+    { id: 10, name: '太上感应', type: '被动', grade: '天品', effect: '修炼速度+100%', multiplier: 2.0, cost: 12000, desc: '太上忘情,感应天地' },
+    // 主动技能
+    { id: 11, name: '灵气爆发', type: '主动', grade: '玄品', effect: '10秒内修炼速度x3', activeMultiplier: 3, activeDuration: 10, cooldown: 60, cost: 3000, desc: '瞬间引爆灵气,大幅提升修炼速度' },
+    { id: 12, name: '天人合一', type: '主动', grade: '天品', effect: '15秒内修炼速度x5', activeMultiplier: 5, activeDuration: 15, cooldown: 120, cost: 8000, desc: '与天地合而为一,修炼速度暴增' }
+];
+
+// 丹药品质
+const PILL_QUALITIES = [
+    { name: '下品', multiplier: 1.0, color: '#aaa' },
+    { name: '中品', multiplier: 1.5, color: '#5fb0a8' },
+    { name: '上品', multiplier: 2.0, color: '#e8c547' },
+    { name: '极品', multiplier: 3.0, color: '#e74c3c' }
 ];
 
 const PILLS = [
@@ -22,7 +73,22 @@ const PILLS = [
     { id: 2, name: '涤神丹', effect: '悟性临时+0.5(5分钟)', tempComprehension: 0.5, duration: 300, cost: 100, desc: '暂时提升悟性的丹药' },
     { id: 3, name: '洗髓丹', effect: '资质永久+0.05', permanentTalent: 0.05, cost: 500, desc: '洗髓伐毛,提升先天资质' },
     { id: 4, name: '筑基丹', effect: '突破成功率+10%', breakthroughBonus: 10, cost: 200, desc: '辅助筑基的反哺丹药' },
-    { id: 5, name: '悟道丹', effect: '修为+500', cultivationBonus: 500, cost: 300, desc: '借道悟道,收益颇丰' }
+    { id: 5, name: '悟道丹', effect: '修为+500', cultivationBonus: 500, cost: 300, desc: '借道悟道,收益颇丰' },
+    { id: 6, name: '凝元丹', effect: '修为+2000', cultivationBonus: 2000, cost: 1000, desc: '凝聚天地元气,修为大增' },
+    { id: 7, name: '破境丹', effect: '突破成功率+25%', breakthroughBonus: 25, cost: 800, desc: '助人突破瓶颈的珍稀丹药' },
+    { id: 8, name: '轮回丹', effect: '资质永久+0.1', permanentTalent: 0.1, cost: 2000, desc: '经历轮回之力,脱胎换骨' }
+];
+
+// 炼丹配方
+const ALCHEMY_RECIPES = [
+    { id: 1, name: '聚气丹', herbCost: 2, stoneCost: 10, successRate: 0.9, pillId: 1, desc: '基础丹药,成功率极高' },
+    { id: 2, name: '涤神丹', herbCost: 3, stoneCost: 30, successRate: 0.75, pillId: 2, desc: '需要静心炼制' },
+    { id: 3, name: '筑基丹', herbCost: 5, stoneCost: 50, successRate: 0.6, pillId: 4, desc: '辅助突破的丹药' },
+    { id: 4, name: '悟道丹', herbCost: 4, stoneCost: 80, successRate: 0.65, pillId: 5, desc: '蕴含道韵的丹药' },
+    { id: 5, name: '洗髓丹', herbCost: 8, stoneCost: 200, successRate: 0.4, pillId: 3, desc: '洗髓伐毛,成功率低' },
+    { id: 6, name: '凝元丹', herbCost: 10, stoneCost: 300, successRate: 0.5, pillId: 6, desc: '大量元气凝聚而成' },
+    { id: 7, name: '破境丹', herbCost: 12, stoneCost: 500, successRate: 0.35, pillId: 7, desc: '突破瓶颈的珍稀丹药' },
+    { id: 8, name: '轮回丹', herbCost: 20, stoneCost: 1000, successRate: 0.2, pillId: 8, desc: '传说级丹药,极难炼制' }
 ];
 
 const SHOP_ITEMS = [
@@ -30,12 +96,15 @@ const SHOP_ITEMS = [
     { id: 2, name: '吐纳术', price: 100, type: 'skill', itemId: 1, desc: '修炼速度+10%' },
     { id: 3, name: '涤神丹', price: 100, type: 'pill', itemId: 2, desc: '悟性临时+0.5' },
     { id: 4, name: '筑基丹', price: 200, type: 'pill', itemId: 4, desc: '突破成功率+10%' },
-    { id: 5, name: '引气诀', price: 300, type: 'skill', itemId: 2, desc: '修炼速度+20%' }
+    { id: 5, name: '引气诀', price: 300, type: 'skill', itemId: 2, desc: '修炼速度+20%' },
+    { id: 6, name: '凝神诀', price: 800, type: 'skill', itemId: 3, desc: '修炼速度+30%' },
+    { id: 7, name: '悟道丹', price: 300, type: 'pill', itemId: 5, desc: '修为+500' },
+    { id: 8, name: '洗髓丹', price: 500, type: 'pill', itemId: 3, desc: '资质永久+0.05' }
 ];
 
-// 奇遇数据 - 15个奇遇事件
+// 奇遇数据 - 20个奇遇事件（含选择型）
 const ENCOUNTERS = [
-    // 机缘类 (34%)
+    // 机缘类
     { id: 1, name: '仙人指路', category: 'opportunity', icon: '🌟', weight: 12,
       desc: '一位白发仙人出现在梦中,指点你修炼之道',
       effects: [
@@ -54,8 +123,31 @@ const ENCOUNTERS = [
         { type: 'cultivation', value: 800, text: '修为 +800' },
         { type: 'skill', value: 'random', text: '随机获得一门功法' }
       ] },
+    // 选择型奇遇
+    { id: 16, name: '神秘洞穴', category: 'opportunity', icon: '🕳️', weight: 8,
+      desc: '你发现一个散发着诡异光芒的洞穴,深处隐约有吼声传来',
+      choices: [
+        { text: '深入探索', effects: [
+            { type: 'cultivation', value: 1000, text: '修为 +1000' },
+            { type: 'spirit', value: -30, text: '灵气 -30' }
+          ], risk: 0.3, riskText: '30%概率损失修为' },
+        { text: '在外观察', effects: [
+            { type: 'spiritStones', value: 200, text: '灵石 +200' }
+          ], risk: 0 }
+      ] },
+    { id: 17, name: '古镜问心', category: 'trial', icon: '🪞', weight: 7,
+      desc: '一面古镜拦住去路,镜中浮现你内心的执念',
+      choices: [
+        { text: '直面心魔', effects: [
+            { type: 'cultivation', value: 600, text: '修为 +600' },
+            { type: 'comprehension_temp', value: 0.5, duration: 300, text: '悟性 +0.5 (5分钟)' }
+          ], risk: 0.4, riskText: '40%概率修为-200' },
+        { text: '绕道而行', effects: [
+            { type: 'cultivation', value: 100, text: '修为 +100' }
+          ], risk: 0 }
+      ] },
 
-    // 遇仙类 (27%)
+    // 遇仙类
     { id: 4, name: '药老赠丹', category: 'immortal', icon: '🧙', weight: 9,
       desc: '一位炼丹宗师路过,赐予你一瓶珍贵的丹药',
       effects: [
@@ -74,8 +166,15 @@ const ENCOUNTERS = [
         { type: 'spiritStones', value: 300, text: '灵石 +300' },
         { type: 'talent', value: 0.05, text: '资质永久 +0.05' }
       ] },
+    // 连锁奇遇：仙人指路后续
+    { id: 18, name: '仙人再访', category: 'immortal', icon: '🌟', weight: 5, requireEncounter: 1,
+      desc: '上次指路的老仙人再次现身,这次他带来了一枚丹药',
+      effects: [
+        { type: 'pill', pillId: 5, count: 2, text: '悟道丹 x2' },
+        { type: 'comprehension_temp', value: 0.4, duration: 300, text: '悟性 +0.4 (5分钟)' }
+      ] },
 
-    // 寻宝类 (17%)
+    // 寻宝类
     { id: 7, name: '灵泉涌动', category: 'treasure', icon: '💧', weight: 6,
       desc: '你发现一处隐秘灵泉,泉水蕴含丰富灵气',
       effects: [
@@ -95,7 +194,7 @@ const ENCOUNTERS = [
         { type: 'cultivation', value: 80, text: '修为 +80' }
       ] },
 
-    // 历练类 (10%)
+    // 历练类
     { id: 10, name: '悟道片刻', category: 'trial', icon: '🧘', weight: 4,
       desc: '修炼中忽有所悟,进入短暂的悟道状态',
       effects: [
@@ -114,7 +213,20 @@ const ENCOUNTERS = [
         { type: 'spirit', value: 20, text: '灵气 +20' }
       ] },
 
-    // 灾难类 (12%)
+    // 选择型奇遇 - 宝物与风险
+    { id: 19, name: '拍卖会', category: 'treasure', icon: '🏦', weight: 6,
+      desc: '路过一处拍卖会,有一件神秘宝物正在拍卖',
+      choices: [
+        { text: '花500灵石竞拍', effects: [
+            { type: 'spiritStones', value: -500, text: '灵石 -500' },
+            { type: 'cultivation', value: 500, text: '获得宝物: 修为 +500' }
+          ], risk: 0.3, riskText: '30%概率拍品是假的' },
+        { text: '观望不出手', effects: [
+            { type: 'cultivation', value: 30, text: '修为 +30' }
+          ], risk: 0 }
+      ] },
+
+    // 灾难类
     { id: 13, name: '妖兽袭击', category: 'disaster', icon: '👹', weight: 5,
       desc: '一只妖兽突然袭击,虽然击退但受了轻伤',
       effects: [
@@ -132,6 +244,19 @@ const ENCOUNTERS = [
       effects: [
         { type: 'cultivation', value: -200, text: '修为 -200' },
         { type: 'spirit', value: -30, text: '灵气 -30' }
+      ] },
+
+    // 选择型灾难
+    { id: 20, name: '天道考验', category: 'disaster', icon: '⚡', weight: 5,
+      desc: '天道降下雷劫,考验你的修仙之心',
+      choices: [
+        { text: '硬抗雷劫', effects: [
+            { type: 'cultivation', value: 800, text: '修为 +800' },
+            { type: 'talent', value: 0.05, text: '资质 +0.05' }
+          ], risk: 0.5, riskText: '50%概率损失500修为' },
+        { text: '暂避锋芒', effects: [
+            { type: 'cultivation', value: -100, text: '修为 -100' }
+          ], risk: 0 }
       ] }
 ];
 
@@ -170,8 +295,9 @@ const DAILY_TASKS = [
       target: 3, type: 'pill', reward: { contrib: 40, spiritStones: 25 } }
 ];
 
-// 成就数据 - 12个成就
+// 成就数据 - 24个成就（含隐藏成就）
 const ACHIEVEMENTS = [
+    // 修炼类
     { id: 'first_cultivate', name: '初入修仙', desc: '首次修炼', icon: '🎮', category: 'cultivation',
       reward: { spiritStones: 50 }, condition: (pd) => pd.stats.totalCultivation >= 1 },
     { id: 'cultivate_1k', name: '初窥门径', desc: '累计修炼1000修为', icon: '📈', category: 'cultivation',
@@ -179,23 +305,53 @@ const ACHIEVEMENTS = [
     { id: 'cultivate_10k', name: '修炼达人', desc: '累计修炼10000修为', icon: '🏆', category: 'cultivation',
       reward: { spiritStones: 300 }, condition: (pd) => pd.stats.totalCultivation >= 10000 },
     { id: 'cultivate_100k', name: '一代宗师', desc: '累计修炼100000修为', icon: '🌟', category: 'cultivation',
-      reward: { spiritStones: 1000 }, condition: (pd) => pd.stats.totalCultivation >= 100000 },
+      reward: { spiritStones: 1000, permBonus: { cultivationSpeed: 0.05 } }, condition: (pd) => pd.stats.totalCultivation >= 100000 },
+    // 突破类
     { id: 'breakthrough_2', name: '炼气初期', desc: '突破到炼气2层', icon: '🔮', category: 'breakthrough',
-      reward: { spiritStones: 80 }, condition: (pd) => pd.realm >= 2 },
+      reward: { spiritStones: 80 }, condition: (pd) => pd.realm >= 2 || (pd.realm === 2 && pd.subLevel >= 2) },
     { id: 'breakthrough_5', name: '炼气后期', desc: '突破到炼气5层', icon: '💫', category: 'breakthrough',
-      reward: { spiritStones: 200 }, condition: (pd) => pd.realm >= 5 },
+      reward: { spiritStones: 200 }, condition: (pd) => pd.subLevel >= 5 || pd.realm >= 2 },
     { id: 'breakthrough_10', name: '筑基成功', desc: '突破到筑基期', icon: '⚡', category: 'breakthrough',
-      reward: { pill: { id: 1, count: 3 } }, condition: (pd) => pd.realm >= 10 },
+      reward: { pill: { id: 1, count: 3 } }, condition: (pd) => pd.realm >= 2 },
+    { id: 'breakthrough_jindan', name: '金丹大成', desc: '突破到金丹期', icon: '🌞', category: 'breakthrough',
+      reward: { spiritStones: 500, permBonus: { talent: 0.05 } }, condition: (pd) => pd.realm >= 3 },
+    { id: 'breakthrough_yuanying', name: '元婴化形', desc: '突破到元婴期', icon: '👶', category: 'breakthrough',
+      reward: { spiritStones: 1000, permBonus: { comprehension: 0.1 } }, condition: (pd) => pd.realm >= 4 },
+    { id: 'breakthrough_huashen', name: '化神飞升', desc: '突破到化神期', icon: '🚀', category: 'breakthrough',
+      reward: { spiritStones: 5000, permBonus: { cultivationSpeed: 0.1 } }, condition: (pd) => pd.realm >= 5 },
+    // 丹药类
     { id: 'first_pill', name: '初尝丹药', desc: '首次使用丹药', icon: '💊', category: 'pills',
       reward: { spiritStones: 30 }, condition: (pd) => pd.stats.pillsUsed >= 1 },
     { id: 'pills_10', name: '丹道入门', desc: '使用10次丹药', icon: '🧪', category: 'pills',
       reward: { pill: { id: 2, count: 2 } }, condition: (pd) => pd.stats.pillsUsed >= 10 },
+    { id: 'pills_50', name: '丹道精通', desc: '使用50次丹药', icon: '⚗️', category: 'pills',
+      reward: { spiritStones: 300, permBonus: { cultivationSpeed: 0.03 } }, condition: (pd) => pd.stats.pillsUsed >= 50 },
+    { id: 'alchemy_master', name: '炼丹宗师', desc: '成功炼丹20次', icon: '🔥', category: 'pills',
+      reward: { spiritStones: 500, permBonus: { talent: 0.03 } }, condition: (pd) => (pd.stats.alchemySuccess || 0) >= 20 },
+    // 奇遇类
     { id: 'first_encounter', name: '初遇奇缘', desc: '首次触发奇遇', icon: '📜', category: 'encounter',
       reward: { spiritStones: 50 }, condition: (pd) => pd.encounterHistory.length >= 1 },
     { id: 'encounter_10', name: '奇遇连连', desc: '触发10次奇遇', icon: '🎲', category: 'encounter',
       reward: { spiritStones: 200 }, condition: (pd) => pd.encounterHistory.length >= 10 },
+    { id: 'encounter_30', name: '机缘深厚', desc: '触发30次奇遇', icon: '🌈', category: 'encounter',
+      reward: { spiritStones: 500, permBonus: { comprehension: 0.05 } }, condition: (pd) => pd.encounterHistory.length >= 30 },
+    // 财富类
     { id: 'spiritStones_1k', name: '小有积蓄', desc: '累计获得1000灵石', icon: '💰', category: 'wealth',
       reward: { spiritStones: 100 }, condition: (pd) => pd.stats.totalSpiritStones >= 1000 },
+    { id: 'spiritStones_10k', name: '富甲一方', desc: '累计获得10000灵石', icon: '💎', category: 'wealth',
+      reward: { spiritStones: 500, permBonus: { cultivationSpeed: 0.03 } }, condition: (pd) => pd.stats.totalSpiritStones >= 10000 },
+    // 功法类
+    { id: 'skills_3', name: '博学多才', desc: '拥有3门功法', icon: '📚', category: 'cultivation',
+      reward: { spiritStones: 200 }, condition: (pd) => pd.ownedSkills.length >= 3 },
+    { id: 'skills_all', name: '功法大成', desc: '拥有所有功法', icon: '📖', category: 'cultivation',
+      reward: { spiritStones: 2000, permBonus: { cultivationSpeed: 0.1 } }, condition: (pd) => pd.ownedSkills.length >= 12 },
+    // 隐藏成就
+    { id: 'hidden_breakthrough_fail', name: '百折不挠', desc: '累计突破失败5次', icon: '💔', category: 'breakthrough', hidden: true,
+      reward: { spiritStones: 300, permBonus: { comprehension: 0.1 } }, condition: (pd) => pd.failedBreakthroughs >= 5 },
+    { id: 'hidden_disaster_5', name: '逆境求生', desc: '遭遇5次灾难奇遇', icon: '☠️', category: 'encounter', hidden: true,
+      reward: { spiritStones: 400, permBonus: { talent: 0.05 } }, condition: (pd) => pd.stats.disaster >= 5 },
+    { id: 'hidden_playtime', name: '修仙苦旅', desc: '游戏时长达1小时', icon: '⏰', category: 'cultivation', hidden: true,
+      reward: { spiritStones: 500, permBonus: { cultivationSpeed: 0.05 } }, condition: (pd) => (pd.stats.playTime || 0) >= 3600 }
 ];
 
 // 法宝数据
@@ -390,6 +546,7 @@ let pendingAchievements = [];
 // 玩家数据
 let playerData = {
     realm: 1,
+    subLevel: 1,
     cultivation: 0,
     spirit: 100,
     maxSpirit: 100,
@@ -399,9 +556,14 @@ let playerData = {
     failedBreakthroughs: 0,
     lastOnlineTime: Date.now(),
     autoCultivate: false,
+    manualCultivate: false,
     equippedSkills: [],
     ownedSkills: [],
+    skillLevels: {},  // 功法等级 {skillId: level}
+    activeSkillCooldowns: {}, // 主动技能冷却 {skillId: timestamp}
+    activeSkillBuffs: {}, // 主动技能生效中 {skillId: expireTimestamp}
     inventory: {},
+    pillQualities: {}, // 丹药品质 {pillId_qualityIndex: count}
     tempBuffs: {
         comprehension: 0,
         breakthrough: 0
@@ -416,9 +578,12 @@ let playerData = {
         disaster: 0,
         totalCultivation: 0,
         pillsUsed: 0,
-        totalSpiritStones: 0
+        totalSpiritStones: 0,
+        alchemySuccess: 0,
+        playTime: 0
     },
     achievements: [],
+    achievementBonuses: {}, // 成就永久加成
 
     sectId: null,
     sectContrib: 0,
@@ -448,6 +613,9 @@ let playerData = {
 
     readStories: [],
     currentStoryId: 1,
+
+    muted: false,
+    sessionStartTime: Date.now(),
 };
 
 let gameInterval = null;
@@ -464,6 +632,7 @@ function init() {
     renderAchievements();
     calculateOfflineReward();
     startGameLoop();
+    updateTaijiProgress();
 }
 
 // 游戏主循环
@@ -478,9 +647,14 @@ function startGameLoop() {
             );
         }
 
-        cultivateTick();
+        // 自动修炼或手动修炼开关开启时自动获得修为
+        if (playerData.autoCultivate || playerData.manualCultivate) {
+            cultivateTick();
+        }
         checkTempBuffs();
+        checkActiveSkillBuffs();
         checkEncounter();
+        playerData.stats.playTime = (playerData.stats.playTime || 0) + 1;
         updateUI();
         saveGame();
     }, 1000);
@@ -490,9 +664,23 @@ function checkTempBuffs() {
     // 临时buff通过setTimeout自动清除
 }
 
+function checkActiveSkillBuffs() {
+    const now = Date.now();
+    let changed = false;
+    for (const skillId in playerData.activeSkillBuffs) {
+        if (playerData.activeSkillBuffs[skillId] <= now) {
+            delete playerData.activeSkillBuffs[skillId];
+            changed = true;
+            showMessage('功法增益已结束', '');
+        }
+    }
+}
+
 function toggleAutoCultivate() {
     playerData.autoCultivate = !playerData.autoCultivate;
-    document.getElementById('autoToggle').classList.toggle('active', playerData.autoCultivate);
+    const toggle = document.getElementById('autoToggle');
+    if (toggle) toggle.classList.toggle('active', playerData.autoCultivate);
+    if (window.audioManager) audioManager.play('click');
 }
 
 function getSpiritCost() {
@@ -532,24 +720,30 @@ function loadGame() {
         const loaded = JSON.parse(saved);
         playerData = { ...playerData, ...loaded };
 
+        // 兼容处理 - 新字段
         if (!playerData.inventory) playerData.inventory = {};
         if (!playerData.tempBuffs) playerData.tempBuffs = { comprehension: 0, breakthrough: 0 };
         if (!playerData.encounterHistory) playerData.encounterHistory = [];
         if (!playerData.stats) playerData.stats = {
-            total: 0,
-            opportunity: 0,
-            immortal: 0,
-            treasure: 0,
-            trial: 0,
-            disaster: 0
+            total: 0, opportunity: 0, immortal: 0, treasure: 0, trial: 0, disaster: 0
         };
+        if (playerData.stats.alchemySuccess === undefined) playerData.stats.alchemySuccess = 0;
+        if (playerData.stats.playTime === undefined) playerData.stats.playTime = 0;
+        if (!playerData.skillLevels) playerData.skillLevels = {};
+        if (!playerData.activeSkillCooldowns) playerData.activeSkillCooldowns = {};
+        if (!playerData.activeSkillBuffs) playerData.activeSkillBuffs = {};
+        if (!playerData.pillQualities) playerData.pillQualities = {};
+        if (!playerData.achievementBonuses) playerData.achievementBonuses = {};
+        if (playerData.subLevel === undefined) playerData.subLevel = 1;
+        if (playerData.manualCultivate === undefined) playerData.manualCultivate = false;
+        if (playerData.muted === undefined) playerData.muted = false;
+        if (playerData.sessionStartTime === undefined) playerData.sessionStartTime = Date.now();
     }
 }
 
 function formatNumber(num) {
-    if (num >= 10000) {
-        return (num / 10000).toFixed(1) + '万';
-    }
+    if (num >= 100000000) return (num / 100000000).toFixed(1) + '亿';
+    if (num >= 10000) return (num / 10000).toFixed(1) + '万';
     return num.toLocaleString();
 }
 
@@ -563,6 +757,27 @@ function formatTime(seconds) {
 function getToday() {
     const now = new Date();
     return `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;
+}
+
+// 更新太极图进度
+function updateTaijiProgress() {
+    const nextSubLevel = getSubLevelCultivation(playerData.realm, playerData.subLevel);
+    const prevSubLevel = getSubLevelCultivation(playerData.realm, playerData.subLevel - 1);
+    const range = nextSubLevel - prevSubLevel;
+    const current = playerData.cultivation - prevSubLevel;
+    const percent = range > 0 ? Math.min(100, (current / range) * 100) : 0;
+
+    const taijiRing = document.getElementById('taijiRing');
+    if (taijiRing) {
+        const circumference = 2 * Math.PI * 70; // radius=70
+        const offset = circumference - (percent / 100) * circumference;
+        taijiRing.style.strokeDashoffset = offset;
+    }
+
+    const taijiPercent = document.getElementById('taijiPercent');
+    if (taijiPercent) {
+        taijiPercent.textContent = percent.toFixed(1) + '%';
+    }
 }
 
 // 启动游戏

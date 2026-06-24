@@ -30,12 +30,15 @@ function buyShopItem(itemId) {
     playerData.spiritStones -= item.price;
     playerData.stats.totalSpiritStones += item.price;
 
+    if (window.audioManager) audioManager.play('click');
+
     if (item.type === 'pill') {
         playerData.inventory[item.itemId] = (playerData.inventory[item.itemId] || 0) + 1;
         showMessage(`购买成功!`, 'success');
     } else if (item.type === 'skill') {
         if (!playerData.ownedSkills.includes(item.itemId)) {
             playerData.ownedSkills.push(item.itemId);
+            if (!playerData.skillLevels[item.itemId]) playerData.skillLevels[item.itemId] = 1;
             showMessage(`获得新功法!`, 'success');
         } else {
             showMessage('已拥有该功法,购买无效退款', 'fail');

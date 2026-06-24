@@ -1,13 +1,18 @@
-// ==================== cultivation.js — 修炼、突破、自动修炼 ====================
+// ==================== cultivation.js — 修炼、突破、自动修炼、手动修炼 ====================
 
 function cultivateTick() {
     const gain = getCultivationGain();
     playerData.cultivation += gain;
     playerData.stats.totalCultivation += gain;
-    playerData.spirit = Math.max(0, playerData.spirit - getSpiritCost());
+
+    // 手动修炼消耗灵气，自动修炼不消耗
+    if (playerData.manualCultivate && !playerData.autoCultivate) {
+        playerData.spirit = Math.max(0, playerData.spirit - getSpiritCost());
+    }
 
     updateDailyTaskProgress('cultivation', gain);
 
+    checkSubLevelUp();
     checkBreakthroughAvailability();
     checkAchievements();
 
@@ -18,15 +23,31 @@ function cultivateTick() {
     checkNewStoryUnlock();
 }
 
+// 小层自动提升
+function checkSubLevelUp() {
+    if (playerData.subLevel < 9) {
+        const needed = getSubLevelCultivation(playerData.realm, playerData.subLevel);
+        if (playerData.cultivation >= needed) {
+            playerData.subLevel++;
+            showMessage(`修为精进！${getFullRealmName()}`, 'success');
+            createFloatingText('修为精进!', 'gold');
+            if (window.audioManager) audioManager.play('levelup');
+            updateTaijiProgress();
+        }
+    }
+}
+
 function getCultivationGain() {
-    const baseRate = 10;
+    const baseRate = 5; // 从10降为5
     const realmBonus = REALMS[playerData.realm - 1].speedMultiplier;
 
     let skillMultiplier = 1.0;
     playerData.equippedSkills.forEach(skillId => {
         const skill = SKILLS.find(s => s.id === skillId);
         if (skill && skill.multiplier) {
-            skillMultiplier *= skill.multiplier;
+            const level = playerData.skillLevels[skillId] || 1;
+            // 每级+10%效果
+            skillMultiplier *= skill.multiplier * (1 + (level - 1) * 0.1);
         }
     });
 
@@ -34,14 +55,27 @@ function getCultivationGain() {
     playerData.equippedSkills.forEach(skillId => {
         const skill = SKILLS.find(s => s.id === skillId);
         if (skill && skill.talentBonus) {
-            totalTalent += skill.talentBonus;
+            const level = playerData.skillLevels[skillId] || 1;
+            totalTalent += skill.talentBonus * (1 + (level - 1) * 0.1);
         }
     });
 
     const artifactBonus = 1 + getArtifactCultivationBonus();
     const beastBonus = 1 + getBeastCultivationBonus();
 
-    return Math.floor(baseRate * realmBonus * skillMultiplier * totalTalent * artifactBonus * beastBonus);
+    // 成就永久加成
+    const achBonus = playerData.achievementBonuses.cultivationSpeed || 0;
+
+    // 主动技能增益
+    let activeMultiplier = 1.0;
+    for (const skillId in playerData.activeSkillBuffs) {
+        const skill = SKILLS.find(s => s.id === parseInt(skillId));
+        if (skill && skill.activeMultiplier) {
+            activeMultiplier *= skill.activeMultiplier;
+        }
+    }
+
+    return Math.floor(baseRate * realmBonus * skillMultiplier * totalTalent * artifactBonus * beastBonus * (1 + achBonus) * activeMultiplier);
 }
 
 function getTotalComprehension() {
@@ -50,69 +84,136 @@ function getTotalComprehension() {
     playerData.equippedSkills.forEach(skillId => {
         const skill = SKILLS.find(s => s.id === skillId);
         if (skill && skill.comprehensionBonus) {
-            total += skill.comprehensionBonus;
+            const level = playerData.skillLevels[skillId] || 1;
+            total += skill.comprehensionBonus * (1 + (level - 1) * 0.1);
         }
     });
 
     total += playerData.tempBuffs.comprehension;
 
+    // 成就永久加成
+    const achBonus = playerData.achievementBonuses.comprehension || 0;
+    total += achBonus;
+
     return total;
 }
 
-function attemptBreakthrough() {
-    const nextRealm = REALMS[playerData.realm];
+// 手动修炼
+function manualCultivate() {
+    if (playerData.spirit < getSpiritCost()) {
+        showMessage('灵气不足！', 'fail');
+        return;
+    }
+    const gain = getCultivationGain() * 2; // 手动修炼2倍收益
+    playerData.cultivation += gain;
+    playerData.stats.totalCultivation += gain;
+    playerData.spirit = Math.max(0, playerData.spirit - getSpiritCost());
 
-    if (!nextRealm || playerData.cultivation < nextRealm.requiredCultivation) {
-        showMessage('修为不足!', 'fail');
+    if (window.audioManager) audioManager.play('cultivate');
+    createFloatingText(`+${gain} 修为`, 'gold');
+    checkSubLevelUp();
+    checkBreakthroughAvailability();
+    checkAchievements();
+    updateDailyTaskProgress('cultivation', gain);
+    updateUI();
+    updateTaijiProgress();
+    saveGame();
+}
+
+// 突破（大境界）
+function attemptBreakthrough() {
+    if (playerData.subLevel < 9) {
+        showMessage('需先修炼至本境界9层圆满！', 'fail');
+        return;
+    }
+
+    const nextRealm = REALMS[playerData.realm];
+    if (!nextRealm) {
+        showMessage('已达最高境界！', 'fail');
         return;
     }
 
     const successRate = calculateBreakthroughSuccessRate();
     const isSuccess = Math.random() * 100 < successRate;
 
+    if (window.audioManager) audioManager.play(isSuccess ? 'breakthrough_success' : 'breakthrough_fail');
+
     if (isSuccess) {
         playerData.realm++;
+        playerData.subLevel = 1;
         playerData.cultivation = 0;
         playerData.failedBreakthroughs = 0;
-        playerData.maxSpirit = 100 + playerData.realm * 10;
+        playerData.maxSpirit = 100 + playerData.realm * 20;
 
-        showMessage(`恭喜突破至${REALMS[playerData.realm - 1].name}!`, 'success');
+        showMessage(`恭喜突破至${REALMS[playerData.realm - 1].name}！`, 'success');
         createFloatingText('突破成功!', 'purple');
 
-        playerData.spiritStones += playerData.realm * 100;
-        playerData.stats.totalSpiritStones += playerData.realm * 100;
+        // 太极图金光爆发
+        const taiji = document.getElementById('taijiContainer');
+        if (taiji) {
+            taiji.classList.add('taiji-burst');
+            setTimeout(() => taiji.classList.remove('taiji-burst'), 2000);
+        }
+
+        playerData.spiritStones += playerData.realm * 200;
+        playerData.stats.totalSpiritStones += playerData.realm * 200;
         checkAchievements();
         updateDailyTaskProgress('breakthrough', 1);
     } else {
-        playerData.cultivation = Math.floor(playerData.cultivation * 0.8);
+        playerData.cultivation = Math.floor(playerData.cultivation * 0.7);
         playerData.failedBreakthroughs++;
 
-        showMessage(`突破失败!损失20%修为,道心-5%`, 'fail');
+        showMessage(`突破失败！损失30%修为，道心+${playerData.failedBreakthroughs * 5}%`, 'fail');
         createFloatingText('突破失败', 'red');
     }
 
     updateUI();
+    updateTaijiProgress();
     saveGame();
 }
 
 function calculateBreakthroughSuccessRate() {
-    const baseRate = 50;
-    const realmPenalty = playerData.realm * 5;
+    const realmConfig = REALMS[playerData.realm - 1];
+    const baseRate = realmConfig.breakthroughRate;
     const comprehensionBonus = getTotalComprehension() * 10;
     const daoHeartBonus = playerData.failedBreakthroughs * 5;
     const pillBonus = playerData.tempBuffs.breakthrough;
 
-    const rate = baseRate - realmPenalty + comprehensionBonus + daoHeartBonus + pillBonus;
-    return Math.max(10, Math.min(90, rate));
+    const rate = baseRate + comprehensionBonus + daoHeartBonus + pillBonus;
+    return Math.max(10, Math.min(95, rate));
 }
 
 function checkBreakthroughAvailability() {
-    const nextRealm = REALMS[playerData.realm];
     const btn = document.getElementById('breakthroughBtn');
+    if (!btn) return;
 
-    if (nextRealm && playerData.cultivation >= nextRealm.requiredCultivation) {
+    if (playerData.subLevel >= 9 && playerData.realm < REALMS.length) {
         btn.disabled = false;
     } else {
         btn.disabled = true;
     }
+}
+
+// 使用主动技能
+function useActiveSkill(skillId) {
+    const skill = SKILLS.find(s => s.id === skillId);
+    if (!skill || skill.type !== '主动') return;
+    if (!playerData.ownedSkills.includes(skillId)) return;
+
+    const now = Date.now();
+    const cooldown = playerData.activeSkillCooldowns[skillId] || 0;
+    if (now < cooldown) {
+        const remaining = Math.ceil((cooldown - now) / 1000);
+        showMessage(`冷却中，还需${remaining}秒`, 'fail');
+        return;
+    }
+
+    playerData.activeSkillBuffs[skillId] = now + skill.activeDuration * 1000;
+    playerData.activeSkillCooldowns[skillId] = now + skill.cooldown * 1000;
+
+    if (window.audioManager) audioManager.play('cultivate');
+    showMessage(`「${skill.name}」已激活！${skill.activeDuration}秒内修炼速度x${skill.activeMultiplier}`, 'success');
+    createFloatingText(`${skill.name}!`, 'purple');
+    renderSkills();
+    saveGame();
 }

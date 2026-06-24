@@ -120,7 +120,7 @@
     box-shadow: 0 4px 16px rgba(95, 176, 168, 0.3);
 }
 
-.btn-cultivate:hover {
+.btn-cultivate:hover:not(:disabled) {
     transform: translateY(-2px) scale(1.02);
     box-shadow: 0 6px 20px rgba(95, 176, 168, 0.4);
 }
@@ -233,8 +233,8 @@
 }
 
 .skill-card.equipped {
-    border-color: var(--purple);
-    background: rgba(123, 94, 167, 0.12);
+    border-color: var(--purple) !important;
+    background: rgba(123, 94, 167, 0.12) !important;
     box-shadow: 0 0 16px rgba(123, 94, 167, 0.2);
 }
 
@@ -243,6 +243,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 6px;
+    gap: 6px;
 }
 
 .skill-name {
@@ -330,51 +331,14 @@
     color: var(--smoke-gray);
 }
 
-/* ---------- 背包 ---------- */
-.inventory-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    margin-top: 14px;
-}
-
-.inventory-slot {
-    aspect-ratio: 1;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    cursor: pointer;
+/* 炼丹配方卡片 */
+.alchemy-recipe-card {
     transition: all 0.3s;
-    position: relative;
 }
 
-.inventory-slot:hover {
-    background: rgba(95, 176, 168, 0.15);
-    border-color: var(--jade);
-}
-
-.inventory-slot.empty {
-    opacity: 0.5;
-}
-
-.inventory-slot .icon {
-    font-size: 20px;
-    margin-bottom: 4px;
-}
-
-.inventory-slot .count {
-    position: absolute;
-    bottom: 4px;
-    right: 4px;
-    font-size: 10px;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 1px 4px;
-    border-radius: 4px;
+.alchemy-recipe-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 12px rgba(95, 176, 168, 0.1);
 }
 
 /* ---------- 商店 ---------- */
@@ -426,20 +390,6 @@
     margin-bottom: 16px;
 }
 
-.encounter-category-title {
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.encounter-list {
-    font-size: 12px;
-    color: var(--smoke-gray);
-}
-
 .encounter-history-item {
     padding: 8px 0;
     border-bottom: 1px solid var(--glass-border);
@@ -452,6 +402,27 @@
 .encounter-time {
     font-size: 11px;
     color: var(--smoke-gray);
+}
+
+.encounter-choice-btn {
+    display: block !important;
+    width: 100% !important;
+    margin-bottom: 8px;
+    padding: 12px !important;
+    font-size: 14px !important;
+    background: linear-gradient(135deg, var(--purple), var(--jade)) !important;
+    border: none;
+    border-radius: 8px;
+    color: var(--spirit-white);
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+    font-weight: bold;
+}
+
+.encounter-choice-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(123, 94, 167, 0.4);
 }
 
 /* ---------- 弹窗 ---------- */
@@ -533,6 +504,7 @@
     cursor: pointer;
     transition: all 0.3s;
     font-family: inherit;
+    display: inline-block;
 }
 
 .encounter-modal-btn:hover {
@@ -579,12 +551,14 @@
     font-size: 12px;
 }
 
-.achievement-list {
+/* 成就徽章网格墙 */
+.achievement-wall {
     display: grid;
+    grid-template-columns: 1fr;
     gap: 10px;
 }
 
-.achievement-card {
+.achievement-badge {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -595,45 +569,45 @@
     transition: all 0.3s;
 }
 
-.achievement-card.unlocked {
+.achievement-badge.unlocked {
     border-color: var(--gold);
     background: rgba(232, 197, 71, 0.1);
     box-shadow: 0 0 16px rgba(232, 197, 71, 0.15);
 }
 
-.achievement-card.locked {
+.achievement-badge.locked {
     opacity: 0.6;
 }
 
-.achievement-card .achievement-icon {
+.badge-icon {
     font-size: 32px;
     width: 48px;
     text-align: center;
 }
 
-.achievement-card .achievement-info {
+.badge-info {
     flex: 1;
 }
 
-.achievement-card .achievement-name {
+.badge-name {
     font-size: 14px;
     font-weight: bold;
     margin-bottom: 4px;
     color: var(--spirit-white);
 }
 
-.achievement-card .achievement-desc {
+.badge-desc {
     font-size: 12px;
     color: var(--smoke-gray);
 }
 
-.achievement-card .achievement-reward {
+.badge-reward {
     font-size: 11px;
     color: var(--gold);
     margin-top: 4px;
 }
 
-.achievement-card .achievement-status {
+.badge-status {
     font-size: 20px;
 }
 
@@ -1022,35 +996,6 @@
 
 .story-chapter-badge {
     font-size: 18px;
-}
-
-.story-content-box {
-    padding: 15px;
-    background: linear-gradient(135deg, rgba(232,197,71,0.08), rgba(123,94,167,0.05));
-    border-radius: 12px;
-    border: 1px solid rgba(232,197,71,0.2);
-}
-
-.story-content-title {
-    font-size: 16px;
-    font-weight: bold;
-    color: var(--gold);
-    margin-bottom: 8px;
-    text-align: center;
-}
-
-.story-content-text {
-    font-size: 13px;
-    color: var(--spirit-white);
-    line-height: 1.8;
-    text-indent: 2em;
-}
-
-.story-unlock-hint {
-    font-size: 11px;
-    color: var(--smoke-gray);
-    text-align: center;
-    padding: 20px;
 }
 
 /* ---------- 浮动文字 ---------- */

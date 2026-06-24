@@ -37,6 +37,26 @@
     animation: goldenBurst 1.5s ease-in-out infinite;
 }
 
+/* 太极图旋转 */
+@keyframes taijiSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* 太极图突破爆发 */
+@keyframes taijiBurst {
+    0% { transform: rotate(0deg) scale(1); filter: brightness(1); }
+    25% { transform: rotate(180deg) scale(1.3); filter: brightness(2) hue-rotate(30deg); }
+    50% { transform: rotate(360deg) scale(1.5); filter: brightness(3) hue-rotate(60deg); }
+    75% { transform: rotate(540deg) scale(1.3); filter: brightness(2) hue-rotate(30deg); }
+    100% { transform: rotate(720deg) scale(1); filter: brightness(1); }
+}
+
+@keyframes taijiContainerBurst {
+    0%, 100% { box-shadow: none; }
+    50% { box-shadow: 0 0 80px rgba(232, 197, 71, 0.8), 0 0 160px rgba(255, 165, 0, 0.4); }
+}
+
 /* 标签切换动画 */
 @keyframes tabSlide {
     from {
@@ -63,24 +83,6 @@
 
 .stat-card:hover {
     animation: cardGlow 2s ease-in-out infinite;
-}
-
-/* 仙气粒子飘浮 */
-@keyframes spiritFloat {
-    0% {
-        transform: translateY(0) translateX(0);
-        opacity: 0;
-    }
-    20% {
-        opacity: 0.6;
-    }
-    80% {
-        opacity: 0.4;
-    }
-    100% {
-        transform: translateY(-100vh) translateX(20px);
-        opacity: 0;
-    }
 }
 
 /* 进度条流光 */
@@ -153,7 +155,6 @@
     to { opacity: 0; }
 }
 
-/* 成就通知渐隐 */
 .achievement-notification.fade-out {
     animation: fadeOut 0.5s ease forwards;
 }
@@ -194,4 +195,9 @@
             0 2px 20px rgba(123, 94, 167, 0.5),
             0 0 24px rgba(95, 176, 168, 0.2);
     }
+}
+
+/* 太极进度环过渡 */
+#taijiRing {
+    transition: stroke-dashoffset 0.5s ease;
 }
