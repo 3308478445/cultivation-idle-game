@@ -48,14 +48,9 @@
         height: 140px;
     }
 
-    .taiji {
+    .taiji-svg {
         width: 100px;
         height: 100px;
-    }
-
-    .taiji::before, .taiji::after {
-        width: 50px;
-        height: 50px;
     }
 
     .taiji-ring-svg {
@@ -209,14 +204,9 @@
         height: 120px;
     }
 
-    .taiji {
+    .taiji-svg {
         width: 85px;
         height: 85px;
-    }
-
-    .taiji::before, .taiji::after {
-        width: 42px;
-        height: 42px;
     }
 
     .taiji-ring-svg {
@@ -258,14 +248,9 @@
         height: 100px;
     }
 
-    .taiji {
+    .taiji-svg {
         width: 70px;
         height: 70px;
-    }
-
-    .taiji::before, .taiji::after {
-        width: 35px;
-        height: 35px;
     }
 
     .taiji-ring-svg {
@@ -289,4 +274,17 @@
     .shop-item:active {
         transform: scale(0.98);
     }
+}
+
+@media (max-width: 480px) {
+    .taiji-container { width: 140px; height: 140px; }
+    .taiji-svg { width: 100px; height: 100px; }
+    .taiji-ring-svg { width: 140px; height: 140px; }
+    .realm-name-display { font-size: 17px; }
+}
+
+@media (max-height: 500px) {
+    .taiji-section { padding: 5px 0; margin-bottom: 10px; }
+    .taiji-container { width: 100px; height: 100px; }
+    .taiji-svg { width: 70px; height: 70px; }
 }

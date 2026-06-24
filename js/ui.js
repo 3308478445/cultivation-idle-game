@@ -108,21 +108,21 @@ function showToast(text) {
 function shareResult() {
     const canvas = document.createElement('canvas');
     canvas.width = 600;
-    canvas.height = 800;
+    canvas.height = 900;
     const ctx = canvas.getContext('2d');
 
-    // 背景渐变
-    const gradient = ctx.createLinearGradient(0, 0, 0, 800);
-    gradient.addColorStop(0, '#0a0a1a');
-    gradient.addColorStop(0.5, '#1a1a2e');
-    gradient.addColorStop(1, '#0f0f23');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 600, 800);
+    // 背景
+    const grad = ctx.createLinearGradient(0, 0, 0, 900);
+    grad.addColorStop(0, '#0a0a1a');
+    grad.addColorStop(0.5, '#1a1a2e');
+    grad.addColorStop(1, '#0a0a1a');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 600, 900);
 
     // 边框
     ctx.strokeStyle = '#e8c547';
     ctx.lineWidth = 3;
-    ctx.strokeRect(20, 20, 560, 760);
+    ctx.strokeRect(20, 20, 560, 860);
 
     // 标题
     ctx.fillStyle = '#e8c547';
@@ -131,40 +131,39 @@ function shareResult() {
     ctx.fillText('修仙放置游戏', 300, 80);
 
     // 境界
-    ctx.fillStyle = '#7b5ea7';
+    ctx.fillStyle = '#5fb0a8';
     ctx.font = 'bold 28px "Microsoft YaHei", sans-serif';
     ctx.fillText(getFullRealmName(), 300, 140);
 
     // 太极图装饰
     ctx.save();
-    ctx.translate(300, 280);
+    ctx.translate(300, 300);
     ctx.beginPath();
-    ctx.arc(0, 0, 80, 0, Math.PI * 2);
-    ctx.fillStyle = '#e8c547';
+    ctx.arc(0, 0, 100, 0, Math.PI * 2);
+    ctx.fillStyle = '#1a1a2e';
     ctx.fill();
-    ctx.beginPath();
-    ctx.arc(0, 0, 75, 0, Math.PI * 2);
-    ctx.fillStyle = '#0a0a1a';
-    ctx.fill();
+    ctx.strokeStyle = '#e8c547';
+    ctx.lineWidth = 3;
+    ctx.stroke();
     // 太极阴阳
     ctx.beginPath();
-    ctx.arc(0, 0, 75, Math.PI / 2, Math.PI * 3 / 2);
+    ctx.arc(0, 0, 95, Math.PI / 2, Math.PI * 3 / 2);
     ctx.fillStyle = '#e8f0f0';
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(0, -37.5, 37.5, Math.PI / 2, Math.PI * 3 / 2);
+    ctx.arc(0, -47.5, 47.5, Math.PI / 2, Math.PI * 3 / 2);
     ctx.fillStyle = '#0a0a1a';
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(0, 37.5, 37.5, -Math.PI / 2, Math.PI / 2);
+    ctx.arc(0, 47.5, 47.5, -Math.PI / 2, Math.PI / 2);
     ctx.fillStyle = '#e8f0f0';
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(0, -37.5, 12, 0, Math.PI * 2);
+    ctx.arc(0, -47.5, 15, 0, Math.PI * 2);
     ctx.fillStyle = '#0a0a1a';
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(0, 37.5, 12, 0, Math.PI * 2);
+    ctx.arc(0, 47.5, 15, 0, Math.PI * 2);
     ctx.fillStyle = '#e8f0f0';
     ctx.fill();
     ctx.restore();
@@ -173,31 +172,27 @@ function shareResult() {
     ctx.fillStyle = '#e8f0f0';
     ctx.font = '20px "Microsoft YaHei", sans-serif';
     ctx.textAlign = 'left';
-    let y = 430;
     const lines = [
         `修为: ${formatNumber(playerData.cultivation)}`,
-        `累计修为: ${formatNumber(playerData.stats.totalCultivation)}`,
         `灵石: ${formatNumber(playerData.spiritStones)}`,
         `资质: ${playerData.talent.toFixed(2)}`,
         `悟性: ${getTotalComprehension().toFixed(2)}`,
-        `奇遇次数: ${playerData.stats.total}`,
-        `成就解锁: ${playerData.achievements.length}/${ACHIEVEMENTS.length}`,
-        `游戏时长: ${formatTime(playerData.stats.playTime || 0)}`,
+        `成就: ${playerData.achievements.length}/${ACHIEVEMENTS.length}`,
+        `奇遇: ${playerData.stats.total}次`,
     ];
-    lines.forEach(line => {
-        ctx.fillText(line, 80, y);
-        y += 35;
+    lines.forEach((line, i) => {
+        ctx.fillText(line, 100, 460 + i * 40);
     });
 
     // 底部
-    ctx.fillStyle = '#5fb0a8';
-    ctx.font = '16px "Microsoft YaHei", sans-serif';
+    ctx.fillStyle = '#8a8a9a';
+    ctx.font = '14px "Microsoft YaHei", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('— 修仙路漫漫,吾将上下而求索 —', 300, 740);
+    ctx.fillText('修仙放置游戏 v1.1', 300, 850);
 
     // 下载
     const link = document.createElement('a');
-    link.download = `修仙成果_${getFullRealmName()}_${Date.now()}.png`;
+    link.download = `修仙成果_${getFullRealmName()}.png`;
     link.href = canvas.toDataURL();
     link.click();
 
@@ -206,8 +201,9 @@ function shareResult() {
 
 // 静音切换
 function toggleMute() {
-    playerData.muted = !playerData.muted;
+    audioManager.muted = !audioManager.muted;
+    playerData.muted = audioManager.muted;
     const btn = document.getElementById('muteBtn');
-    if (btn) btn.textContent = playerData.muted ? '🔇' : '🔊';
+    if (btn) btn.textContent = audioManager.muted ? '🔇' : '🔊';
     saveGame();
 }

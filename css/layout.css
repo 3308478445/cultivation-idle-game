@@ -138,115 +138,23 @@
     filter: drop-shadow(0 0 8px rgba(95, 176, 168, 0.3));
 }
 
-/* CSS太极图 */
-.taiji {
+/* SVG太极图 */
+.taiji-svg {
     position: relative;
     width: 130px;
     height: 130px;
-    border-radius: 50%;
-    animation: taijiSpin 8s linear infinite;
     z-index: 1;
-    overflow: hidden;
-    box-shadow: 0 0 30px rgba(232, 197, 71, 0.2);
-}
-
-.taiji-yang {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 50%;
-    height: 100%;
-    background: #e8f0f0;
-    border-radius: 65px 0 0 65px;
-}
-
-.taiji-yin {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 50%;
-    height: 100%;
-    background: #0a0a1a;
-    border-radius: 0 65px 65px 0;
-}
-
-.taiji-dot-yang {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 65px;
-    height: 32px;
-    background: #e8f0f0;
-    border-radius: 32px 32px 0 0;
-    margin-top: -32px;
-}
-
-.taiji-dot-yin {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 65px;
-    height: 32px;
-    background: #0a0a1a;
-    border-radius: 0 0 32px 32px;
-    margin-top: 0;
-}
-
-/* 更精确的太极图用伪元素 */
-.taiji::before,
-.taiji::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    width: 65px;
-    height: 65px;
-    border-radius: 50%;
-}
-
-.taiji::before {
-    top: 0;
-    transform: translateX(-50%);
-    background: #e8f0f0;
-}
-
-.taiji::after {
-    bottom: 0;
-    transform: translateX(-50%);
-    background: #0a0a1a;
-}
-
-/* 覆盖之前简化实现 - 使用纯CSS太极 */
-.taiji-yang, .taiji-yin, .taiji-dot-yang, .taiji-dot-yin {
-    display: none;
-}
-
-.taiji {
-    background: linear-gradient(to right, #e8f0f0 50%, #0a0a1a 50%);
-}
-
-.taiji::before {
-    top: 0;
-    width: 65px;
-    height: 65px;
-    background: #e8f0f0;
-}
-
-.taiji::after {
-    bottom: 0;
-    width: 65px;
-    height: 65px;
-    background: #0a0a1a;
+    animation: taijiSpin 8s linear infinite;
+    filter: drop-shadow(0 0 20px rgba(232, 197, 71, 0.2));
 }
 
 /* 修炼时加速旋转 */
-.taiji-container.cultivating .taiji {
+.taiji-container.cultivating .taiji-svg {
     animation: taijiSpin 3s linear infinite;
 }
 
 /* 突破金光爆发 */
-.taiji-container.taiji-burst .taiji {
+.taiji-container.taiji-burst .taiji-svg {
     animation: taijiBurst 2s ease;
 }
 

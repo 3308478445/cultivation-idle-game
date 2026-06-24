@@ -5,10 +5,8 @@ function cultivateTick() {
     playerData.cultivation += gain;
     playerData.stats.totalCultivation += gain;
 
-    // 手动修炼消耗灵气，自动修炼不消耗
-    if (playerData.manualCultivate && !playerData.autoCultivate) {
-        playerData.spirit = Math.max(0, playerData.spirit - getSpiritCost());
-    }
+    // 自动修炼不消耗灵气，每秒自动获得修为
+    // 手动修炼的灵气消耗和双倍修为在 manualCultivate() 中处理
 
     updateDailyTaskProgress('cultivation', gain);
 

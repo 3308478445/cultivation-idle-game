@@ -92,14 +92,28 @@ const ALCHEMY_RECIPES = [
 ];
 
 const SHOP_ITEMS = [
+    // 丹药
     { id: 1, name: '聚气丹', price: 50, type: 'pill', itemId: 1, desc: '修为+100' },
-    { id: 2, name: '吐纳术', price: 100, type: 'skill', itemId: 1, desc: '修炼速度+10%' },
     { id: 3, name: '涤神丹', price: 100, type: 'pill', itemId: 2, desc: '悟性临时+0.5' },
     { id: 4, name: '筑基丹', price: 200, type: 'pill', itemId: 4, desc: '突破成功率+10%' },
+    { id: 7, name: '悟道丹', price: 300, type: 'pill', itemId: 5, desc: '修为+500' },
+    { id: 8, name: '洗髓丹', price: 500, type: 'pill', itemId: 3, desc: '资质永久+0.05' },
+    { id: 9, name: '凝元丹', price: 1000, type: 'pill', itemId: 6, desc: '修为+2000' },
+    { id: 10, name: '破境丹', price: 800, type: 'pill', itemId: 7, desc: '突破成功率+25%' },
+    { id: 11, name: '轮回丹', price: 2000, type: 'pill', itemId: 8, desc: '资质永久+0.1' },
+    // 功法
+    { id: 2, name: '吐纳术', price: 100, type: 'skill', itemId: 1, desc: '修炼速度+10%' },
     { id: 5, name: '引气诀', price: 300, type: 'skill', itemId: 2, desc: '修炼速度+20%' },
     { id: 6, name: '凝神诀', price: 800, type: 'skill', itemId: 3, desc: '修炼速度+30%' },
-    { id: 7, name: '悟道丹', price: 300, type: 'pill', itemId: 5, desc: '修为+500' },
-    { id: 8, name: '洗髓丹', price: 500, type: 'pill', itemId: 3, desc: '资质永久+0.05' }
+    { id: 12, name: '灵台清明', price: 500, type: 'skill', itemId: 4, desc: '悟性+0.2' },
+    { id: 13, name: '炼体诀', price: 600, type: 'skill', itemId: 5, desc: '资质+0.1' },
+    { id: 14, name: '紫气东来', price: 2000, type: 'skill', itemId: 6, desc: '修炼速度+45%' },
+    { id: 15, name: '天眼通', price: 1500, type: 'skill', itemId: 7, desc: '悟性+0.5' },
+    { id: 16, name: '混元功', price: 5000, type: 'skill', itemId: 8, desc: '修炼速度+70%' },
+    { id: 17, name: '九转金身', price: 4000, type: 'skill', itemId: 9, desc: '资质+0.3, 悟性+0.3' },
+    { id: 18, name: '太上感应', price: 12000, type: 'skill', itemId: 10, desc: '修炼速度+100%' },
+    { id: 19, name: '灵气爆发', price: 3000, type: 'skill', itemId: 11, desc: '主动: 10秒修炼x3' },
+    { id: 20, name: '天人合一', price: 8000, type: 'skill', itemId: 12, desc: '主动: 15秒修炼x5' }
 ];
 
 // 奇遇数据 - 20个奇遇事件（含选择型）
@@ -733,11 +747,17 @@ function loadGame() {
         if (!playerData.activeSkillCooldowns) playerData.activeSkillCooldowns = {};
         if (!playerData.activeSkillBuffs) playerData.activeSkillBuffs = {};
         if (!playerData.pillQualities) playerData.pillQualities = {};
-        if (!playerData.achievementBonuses) playerData.achievementBonuses = {};
+        if (!playerData.achievementBonuses) playerData.achievementBonuses = { cultivationSpeed: 0, talent: 0, comprehension: 0 };
         if (playerData.subLevel === undefined) playerData.subLevel = 1;
         if (playerData.manualCultivate === undefined) playerData.manualCultivate = false;
         if (playerData.muted === undefined) playerData.muted = false;
         if (playerData.sessionStartTime === undefined) playerData.sessionStartTime = Date.now();
+        // 确保 achievementBonuses 有完整字段
+        if (playerData.achievementBonuses.cultivationSpeed === undefined) playerData.achievementBonuses.cultivationSpeed = 0;
+        if (playerData.achievementBonuses.talent === undefined) playerData.achievementBonuses.talent = 0;
+        if (playerData.achievementBonuses.comprehension === undefined) playerData.achievementBonuses.comprehension = 0;
+        // 确保 stats 有完整字段
+        if (playerData.stats.alchemySuccess === undefined) playerData.stats.alchemySuccess = 0;
     }
 }
 
@@ -761,22 +781,34 @@ function getToday() {
 
 // 更新太极图进度
 function updateTaijiProgress() {
+    const ring = document.getElementById('taijiRing');
+    const percentEl = document.getElementById('taijiPercent');
+    const realmNameEl = document.getElementById('realmNameDisplay');
+    const cultivationNumEl = document.getElementById('cultivationNum');
+
+    // 进度计算：基于当前小层进度
     const nextSubLevel = getSubLevelCultivation(playerData.realm, playerData.subLevel);
     const prevSubLevel = getSubLevelCultivation(playerData.realm, playerData.subLevel - 1);
     const range = nextSubLevel - prevSubLevel;
     const current = playerData.cultivation - prevSubLevel;
-    const percent = range > 0 ? Math.min(100, (current / range) * 100) : 0;
+    const progress = range > 0 ? Math.min(100, (current / range) * 100) : 0;
 
-    const taijiRing = document.getElementById('taijiRing');
-    if (taijiRing) {
-        const circumference = 2 * Math.PI * 70; // radius=70
-        const offset = circumference - (percent / 100) * circumference;
-        taijiRing.style.strokeDashoffset = offset;
+    if (ring) {
+        const circumference = 502.65; // 2 * PI * 80
+        const offset = circumference - (progress / 100) * circumference;
+        ring.style.strokeDashoffset = offset;
     }
 
-    const taijiPercent = document.getElementById('taijiPercent');
-    if (taijiPercent) {
-        taijiPercent.textContent = percent.toFixed(1) + '%';
+    if (percentEl) {
+        percentEl.textContent = progress.toFixed(1) + '%';
+    }
+
+    if (realmNameEl) {
+        realmNameEl.textContent = getFullRealmName();
+    }
+
+    if (cultivationNumEl) {
+        cultivationNumEl.textContent = formatNumber(playerData.cultivation) + ' / ' + formatNumber(nextSubLevel || 0);
     }
 }
 

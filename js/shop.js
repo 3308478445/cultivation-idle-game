@@ -6,10 +6,13 @@ function renderShop() {
     document.getElementById('shopSpiritStones').textContent = formatNumber(playerData.spiritStones);
 
     container.innerHTML = SHOP_ITEMS.map(item => {
+        const typeIcon = item.type === 'skill' ? '📜' : '💊';
+        const owned = item.type === 'skill' && playerData.ownedSkills.includes(item.itemId);
+        const ownedTag = owned ? '<span style="font-size:11px;color:var(--green);margin-left:6px;">已拥有</span>' : '';
         return `
             <div class="shop-item" onclick="buyShopItem(${item.id})">
                 <div class="shop-item-header">
-                    <span class="shop-item-name">${item.name}</span>
+                    <span class="shop-item-name">${typeIcon} ${item.name}${ownedTag}</span>
                     <span class="shop-item-price">${item.price} 灵石</span>
                 </div>
                 <div class="shop-item-desc">${item.desc}</div>
@@ -28,7 +31,6 @@ function buyShopItem(itemId) {
     }
 
     playerData.spiritStones -= item.price;
-    playerData.stats.totalSpiritStones += item.price;
 
     if (window.audioManager) audioManager.play('click');
 
