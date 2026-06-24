@@ -1,0 +1,76 @@
+/* ========== animations.css - 动画特效 ========== */
+
+/* 淡入上滑 */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 淡入 */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* 上滑 */
+@keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* 右滑入 */
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* 淡出 */
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* 浮动文字 */
+@keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-50px); }
+}
+
+/* 进度条流光 */
+@keyframes progressShine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* 修炼呼吸光效 */
+@keyframes breathe {
+    0%, 100% { box-shadow: 0 4px 12px rgba(95, 176, 168, 0.3); }
+    50% { box-shadow: 0 4px 24px rgba(95, 176, 168, 0.6); }
+}
+
+.btn-cultivate { animation: breathe 3s ease-in-out infinite; }
+
+/* 突破金光爆发 */
+@keyframes goldenBurst {
+    0% { box-shadow: 0 0 0 0 rgba(232, 197, 71, 0.5); }
+    50% { box-shadow: 0 0 30px 10px rgba(232, 197, 71, 0.4); }
+    100% { box-shadow: 0 0 0 0 rgba(232, 197, 71, 0); }
+}
+
+/* 奇遇发光 */
+@keyframes encounterGlow {
+    0%, 100% { box-shadow: 0 0 20px rgba(123, 94, 167, 0.5); }
+    50% { box-shadow: 0 0 40px rgba(123, 94, 167, 0.8); }
+}
+
+/* 仙气粒子飘浮 */
+@keyframes spiritDrift {
+    0% { background-position: 0 0; }
+    100% { background-position: 300px 300px; }
+}
+
+/* 卡片悬浮光晕 */
+@keyframes cardGlow {
+    0%, 100% { box-shadow: 0 0 0 rgba(95, 176, 168, 0); }
+    50% { box-shadow: 0 0 16px rgba(95, 176, 168, 0.3); }
+}
