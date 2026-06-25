@@ -15,8 +15,10 @@ function checkEncounter() {
 }
 
 function triggerEncounter() {
-    // 过滤可触发的奇遇（检查连锁前置条件）
+    // 过滤可触发的奇遇（检查连锁前置条件 + 境界限制）
     const available = ENCOUNTERS.filter(e => {
+        // 检查境界限制（高阶专属奇遇）
+        if (e.minRealm && playerData.realm < e.minRealm) return false;
         if (e.requireEncounter) {
             // 检查是否触发过前置奇遇
             return playerData.encounterHistory.some(h => h.id === e.requireEncounter);

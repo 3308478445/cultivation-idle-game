@@ -137,13 +137,34 @@ function attemptBreakthrough() {
     if (window.audioManager) audioManager.play(isSuccess ? 'breakthrough_success' : 'breakthrough_fail');
 
     if (isSuccess) {
+        const oldRealm = playerData.realm;
         playerData.realm++;
         playerData.subLevel = 1;
         playerData.cultivation = 0;
         playerData.failedBreakthroughs = 0;
         playerData.maxSpirit = 100 + playerData.realm * 20;
 
-        showMessage(`恭喜突破至${REALMS[playerData.realm - 1].name}！`, 'success');
+        const newRealmConfig = REALMS[playerData.realm - 1];
+        const tier = newRealmConfig.tier;
+
+        // 根据境界等级给予不同奖励
+        const stoneReward = getBreakthroughStoneReward(playerData.realm);
+        playerData.spiritStones += stoneReward;
+        playerData.stats.totalSpiritStones += stoneReward;
+
+        // 不同 tier 的突破消息
+        let breakthroughMsg = `恭喜突破至${newRealmConfig.name}！`;
+        if (tier >= 4) {
+            // 顶阶突破：雷劫描述
+            breakthroughMsg = `⚡ 天雷散去，你突破至${newRealmConfig.name}！${getTierBreakthroughDesc(tier)}`;
+        } else if (tier >= 3) {
+            // 高阶突破：天地异象
+            breakthroughMsg = `🌟 天地异现，你突破至${newRealmConfig.name}！${getTierBreakthroughDesc(tier)}`;
+        } else if (tier >= 2) {
+            breakthroughMsg = `✨ 仙光笼罩，你突破至${newRealmConfig.name}！`;
+        }
+
+        showMessage(breakthroughMsg, 'success');
         createFloatingText('突破成功!', 'purple');
 
         // 太极图金光爆发
@@ -153,8 +174,20 @@ function attemptBreakthrough() {
             setTimeout(() => taiji.classList.remove('taiji-burst'), 2000);
         }
 
-        playerData.spiritStones += playerData.realm * 200;
-        playerData.stats.totalSpiritStones += playerData.realm * 200;
+        // 高阶境界额外特效
+        if (tier >= 3) {
+            createFloatingText('天地异象!', 'gold');
+            setTimeout(() => createFloatingText('灵气暴涨!', 'gold'), 500);
+        }
+        if (tier >= 4) {
+            setTimeout(() => createFloatingText('雷劫降临!', 'red'), 300);
+        }
+        if (tier >= 5) {
+            setTimeout(() => createFloatingText('仙光万丈!', 'gold'), 700);
+        }
+
+        showMessage(`恭喜突破至${newRealmConfig.name}！获得${formatNumber(stoneReward)}灵石`, 'success');
+
         checkAchievements();
         updateDailyTaskProgress('breakthrough', 1);
     } else {
@@ -168,6 +201,26 @@ function attemptBreakthrough() {
     updateUI();
     updateTaijiProgress();
     saveGame();
+}
+
+// 根据境界 tier 获取灵石奖励
+function getBreakthroughStoneReward(realm) {
+    const realmConfig = REALMS[realm - 1];
+    const tier = realmConfig.tier;
+    // 基础奖励 = realm * 200，高 tier 额外倍率
+    const base = realm * 200;
+    const tierMultiplier = [1, 1, 2, 5, 10, 50][tier - 1] || 1;
+    return Math.floor(base * tierMultiplier);
+}
+
+// 根据 tier 获取突破描述文本
+function getTierBreakthroughDesc(tier) {
+    const descs = {
+        3: '天地灵气汇聚，方圆千里为之震动。',
+        4: '九重天雷洗礼，你以无畏之心硬抗天劫，终成大道！',
+        5: '仙界金光万丈，仙乐飘飘，你已超脱轮回，与天地同寿！'
+    };
+    return descs[tier] || '';
 }
 
 function calculateBreakthroughSuccessRate() {

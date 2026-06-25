@@ -1,12 +1,24 @@
 // ==================== core.js — 游戏核心：数据定义、存档、主循环 ====================
 
-// 游戏配置 — 境界扩展：每个大境界分9小层
+// 游戏配置 — 境界扩展：12大境界 × 9小层
 const REALMS = [
-    { id: 1, name: '炼气境', shortName: '炼气', requiredCultivation: 0, nextRealmCultivation: 1000, speedMultiplier: 1.0, skillSlots: 1, breakthroughRate: 80 },
-    { id: 2, name: '筑基境', shortName: '筑基', requiredCultivation: 1000, nextRealmCultivation: 5000, speedMultiplier: 1.5, skillSlots: 2, breakthroughRate: 70 },
-    { id: 3, name: '金丹境', shortName: '金丹', requiredCultivation: 5000, nextRealmCultivation: 25000, speedMultiplier: 2.0, skillSlots: 3, breakthroughRate: 60 },
-    { id: 4, name: '元婴境', shortName: '元婴', requiredCultivation: 25000, nextRealmCultivation: 100000, speedMultiplier: 3.0, skillSlots: 4, breakthroughRate: 50 },
-    { id: 5, name: '化神境', shortName: '化神', requiredCultivation: 100000, nextRealmCultivation: 999999999, speedMultiplier: 5.0, skillSlots: 5, breakthroughRate: 40 }
+    // 凡修 — 炼气、筑基
+    { id: 1, name: '炼气境', shortName: '炼气', requiredCultivation: 0, nextRealmCultivation: 1000, speedMultiplier: 1.0, skillSlots: 1, breakthroughRate: 85, tier: 1, tierName: '凡修' },
+    { id: 2, name: '筑基境', shortName: '筑基', requiredCultivation: 1000, nextRealmCultivation: 5000, speedMultiplier: 1.5, skillSlots: 2, breakthroughRate: 75, tier: 1, tierName: '凡修' },
+    // 仙修 — 金丹、元婴、化神
+    { id: 3, name: '金丹境', shortName: '金丹', requiredCultivation: 5000, nextRealmCultivation: 25000, speedMultiplier: 2.0, skillSlots: 3, breakthroughRate: 65, tier: 2, tierName: '仙修' },
+    { id: 4, name: '元婴境', shortName: '元婴', requiredCultivation: 25000, nextRealmCultivation: 100000, speedMultiplier: 3.0, skillSlots: 4, breakthroughRate: 55, tier: 2, tierName: '仙修' },
+    { id: 5, name: '化神境', shortName: '化神', requiredCultivation: 100000, nextRealmCultivation: 500000, speedMultiplier: 5.0, skillSlots: 5, breakthroughRate: 45, tier: 2, tierName: '仙修' },
+    // 高阶 — 炼虚、合体、大乘
+    { id: 6, name: '炼虚境', shortName: '炼虚', requiredCultivation: 500000, nextRealmCultivation: 2000000, speedMultiplier: 7.0, skillSlots: 6, breakthroughRate: 35, tier: 3, tierName: '高阶' },
+    { id: 7, name: '合体境', shortName: '合体', requiredCultivation: 2000000, nextRealmCultivation: 8000000, speedMultiplier: 10.0, skillSlots: 6, breakthroughRate: 30, tier: 3, tierName: '高阶' },
+    { id: 8, name: '大乘境', shortName: '大乘', requiredCultivation: 8000000, nextRealmCultivation: 30000000, speedMultiplier: 15.0, skillSlots: 7, breakthroughRate: 25, tier: 3, tierName: '高阶' },
+    // 顶阶 — 渡劫、飞升
+    { id: 9, name: '渡劫境', shortName: '渡劫', requiredCultivation: 30000000, nextRealmCultivation: 100000000, speedMultiplier: 20.0, skillSlots: 7, breakthroughRate: 20, tier: 4, tierName: '顶阶' },
+    { id: 10, name: '飞升境', shortName: '飞升', requiredCultivation: 100000000, nextRealmCultivation: 500000000, speedMultiplier: 30.0, skillSlots: 8, breakthroughRate: 15, tier: 4, tierName: '顶阶' },
+    // 仙界 — 真仙、金仙
+    { id: 11, name: '真仙境', shortName: '真仙', requiredCultivation: 500000000, nextRealmCultivation: 2000000000, speedMultiplier: 50.0, skillSlots: 8, breakthroughRate: 12, tier: 5, tierName: '仙界' },
+    { id: 12, name: '金仙境', shortName: '金仙', requiredCultivation: 2000000000, nextRealmCultivation: 9999999999, speedMultiplier: 100.0, skillSlots: 10, breakthroughRate: 8, tier: 5, tierName: '仙界' }
 ];
 
 // 小层修为需求计算 — 指数级增长
@@ -57,7 +69,11 @@ const SKILLS = [
     { id: 10, name: '太上感应', type: '被动', grade: '天品', effect: '修炼速度+100%', multiplier: 2.0, cost: 12000, desc: '太上忘情,感应天地' },
     // 主动技能
     { id: 11, name: '灵气爆发', type: '主动', grade: '玄品', effect: '10秒内修炼速度x3', activeMultiplier: 3, activeDuration: 10, cooldown: 60, cost: 3000, desc: '瞬间引爆灵气,大幅提升修炼速度' },
-    { id: 12, name: '天人合一', type: '主动', grade: '天品', effect: '15秒内修炼速度x5', activeMultiplier: 5, activeDuration: 15, cooldown: 120, cost: 8000, desc: '与天地合而为一,修炼速度暴增' }
+    { id: 12, name: '天人合一', type: '主动', grade: '天品', effect: '15秒内修炼速度x5', activeMultiplier: 5, activeDuration: 15, cooldown: 120, cost: 8000, desc: '与天地合而为一,修炼速度暴增' },
+    // 天品高级功法（高阶境界专属）
+    { id: 13, name: '万象归元', type: '被动', grade: '天品', effect: '修炼速度+150%', multiplier: 2.5, cost: 20000, desc: '万法归元,吞吐天地灵气如鲸吞海' },
+    { id: 14, name: '天道法则', type: '被动', grade: '天品', effect: '悟性+1.0', comprehensionBonus: 1.0, cost: 15000, desc: '感悟天道法则,洞察宇宙玄机' },
+    { id: 15, name: '鸿蒙之力', type: '主动', grade: '天品', effect: '20秒内修炼速度x10', activeMultiplier: 10, activeDuration: 20, cooldown: 300, cost: 30000, desc: '开辟鸿蒙,引混沌之力灌体,修为暴涨' }
 ];
 
 // 丹药品质
@@ -113,10 +129,14 @@ const SHOP_ITEMS = [
     { id: 17, name: '九转金身', price: 4000, type: 'skill', itemId: 9, desc: '资质+0.3, 悟性+0.3' },
     { id: 18, name: '太上感应', price: 12000, type: 'skill', itemId: 10, desc: '修炼速度+100%' },
     { id: 19, name: '灵气爆发', price: 3000, type: 'skill', itemId: 11, desc: '主动: 10秒修炼x3' },
-    { id: 20, name: '天人合一', price: 8000, type: 'skill', itemId: 12, desc: '主动: 15秒修炼x5' }
+    { id: 20, name: '天人合一', price: 8000, type: 'skill', itemId: 12, desc: '主动: 15秒修炼x5' },
+    // 高级功法
+    { id: 21, name: '万象归元', price: 20000, type: 'skill', itemId: 13, desc: '修炼速度+150%' },
+    { id: 22, name: '天道法则', price: 15000, type: 'skill', itemId: 14, desc: '悟性+1.0' },
+    { id: 23, name: '鸿蒙之力', price: 30000, type: 'skill', itemId: 15, desc: '主动: 20秒修炼x10' }
 ];
 
-// 奇遇数据 - 20个奇遇事件（含选择型）
+// 奇遇数据 - 23个奇遇事件（含选择型、高阶专属）
 const ENCOUNTERS = [
     // 机缘类
     { id: 1, name: '仙人指路', category: 'opportunity', icon: '🌟', weight: 12,
@@ -271,6 +291,26 @@ const ENCOUNTERS = [
         { text: '暂避锋芒', effects: [
             { type: 'cultivation', value: -100, text: '修为 -100' }
           ], risk: 0 }
+      ] },
+
+    // ===== 高阶境界专属奇遇 =====
+    // 渡劫专属
+    { id: 21, name: '雷劫洗礼', category: 'opportunity', icon: '🌩️', weight: 8, minRealm: 9,
+      desc: '渡劫时引来九重天雷,扛过去便修为大增',
+      effects: [
+        { type: 'cultivation', value: 5000000, text: '修为 +5000000' }
+      ] },
+    // 飞升专属
+    { id: 22, name: '仙界接引', category: 'opportunity', icon: '✨', weight: 7, minRealm: 10,
+      desc: '仙界接引使者降临,赐予仙界灵气',
+      effects: [
+        { type: 'cultivation', value: 20000000, text: '修为 +20000000' }
+      ] },
+    // 真仙专属
+    { id: 23, name: '仙灵池', category: 'opportunity', icon: '💎', weight: 6, minRealm: 11,
+      desc: '发现一处远古仙灵池,沐浴其中修为暴涨',
+      effects: [
+        { type: 'cultivation', value: 100000000, text: '修为 +100000000' }
       ] }
 ];
 
@@ -309,7 +349,7 @@ const DAILY_TASKS = [
       target: 3, type: 'pill', reward: { contrib: 40, spiritStones: 25 } }
 ];
 
-// 成就数据 - 24个成就（含隐藏成就）
+// 成就数据 - 31个成就（含隐藏成就，扩展至金仙境）
 const ACHIEVEMENTS = [
     // 修炼类
     { id: 'first_cultivate', name: '初入修仙', desc: '首次修炼', icon: '🎮', category: 'cultivation',
@@ -320,7 +360,7 @@ const ACHIEVEMENTS = [
       reward: { spiritStones: 300 }, condition: (pd) => pd.stats.totalCultivation >= 10000 },
     { id: 'cultivate_100k', name: '一代宗师', desc: '累计修炼100000修为', icon: '🌟', category: 'cultivation',
       reward: { spiritStones: 1000, permBonus: { cultivationSpeed: 0.05 } }, condition: (pd) => pd.stats.totalCultivation >= 100000 },
-    // 突破类
+    // 突破类（原有）
     { id: 'breakthrough_2', name: '炼气初期', desc: '突破到炼气2层', icon: '🔮', category: 'breakthrough',
       reward: { spiritStones: 80 }, condition: (pd) => pd.realm >= 2 || (pd.realm === 2 && pd.subLevel >= 2) },
     { id: 'breakthrough_5', name: '炼气后期', desc: '突破到炼气5层', icon: '💫', category: 'breakthrough',
@@ -333,6 +373,21 @@ const ACHIEVEMENTS = [
       reward: { spiritStones: 1000, permBonus: { comprehension: 0.1 } }, condition: (pd) => pd.realm >= 4 },
     { id: 'breakthrough_huashen', name: '化神飞升', desc: '突破到化神期', icon: '🚀', category: 'breakthrough',
       reward: { spiritStones: 5000, permBonus: { cultivationSpeed: 0.1 } }, condition: (pd) => pd.realm >= 5 },
+    // 突破类（新增高阶境界）
+    { id: 'breakthrough_lianxu', name: '虚空之主', desc: '突破至炼虚境', icon: '🌀', category: 'breakthrough',
+      reward: { spiritStones: 50000 }, condition: (pd) => pd.realm >= 6 },
+    { id: 'breakthrough_heti', name: '合体大成', desc: '突破至合体境', icon: '🌟', category: 'breakthrough',
+      reward: { spiritStones: 200000 }, condition: (pd) => pd.realm >= 7 },
+    { id: 'breakthrough_dacheng', name: '大乘圆满', desc: '突破至大乘境', icon: '⚡', category: 'breakthrough',
+      reward: { spiritStones: 500000, permBonus: { cultivationSpeed: 0.1 } }, condition: (pd) => pd.realm >= 8 },
+    { id: 'breakthrough_dujie', name: '雷劫渡过', desc: '成功渡劫', icon: '🌩️', category: 'breakthrough',
+      reward: { spiritStones: 1000000, permBonus: { cultivationSpeed: 0.15 } }, condition: (pd) => pd.realm >= 9 },
+    { id: 'breakthrough_feisheng', name: '飞升成仙', desc: '飞升仙界', icon: '✨', category: 'breakthrough',
+      reward: { spiritStones: 5000000, permBonus: { cultivationSpeed: 0.2 } }, condition: (pd) => pd.realm >= 10 },
+    { id: 'breakthrough_zhenxian', name: '真仙之位', desc: '成就真仙', icon: '👑', category: 'breakthrough', hidden: true,
+      reward: { spiritStones: 20000000, permBonus: { cultivationSpeed: 0.3 } }, condition: (pd) => pd.realm >= 11 },
+    { id: 'breakthrough_jinxian', name: '金仙大圆满', desc: '修至金仙境', icon: '🔥', category: 'breakthrough', hidden: true,
+      reward: { spiritStones: 100000000, permBonus: { cultivationSpeed: 0.5, talent: 1.0 } }, condition: (pd) => pd.realm >= 12 },
     // 丹药类
     { id: 'first_pill', name: '初尝丹药', desc: '首次使用丹药', icon: '💊', category: 'pills',
       reward: { spiritStones: 30 }, condition: (pd) => pd.stats.pillsUsed >= 1 },
@@ -358,7 +413,7 @@ const ACHIEVEMENTS = [
     { id: 'skills_3', name: '博学多才', desc: '拥有3门功法', icon: '📚', category: 'cultivation',
       reward: { spiritStones: 200 }, condition: (pd) => pd.ownedSkills.length >= 3 },
     { id: 'skills_all', name: '功法大成', desc: '拥有所有功法', icon: '📖', category: 'cultivation',
-      reward: { spiritStones: 2000, permBonus: { cultivationSpeed: 0.1 } }, condition: (pd) => pd.ownedSkills.length >= 12 },
+      reward: { spiritStones: 2000, permBonus: { cultivationSpeed: 0.1 } }, condition: (pd) => pd.ownedSkills.length >= 15 },
     // 隐藏成就
     { id: 'hidden_breakthrough_fail', name: '百折不挠', desc: '累计突破失败5次', icon: '💔', category: 'breakthrough', hidden: true,
       reward: { spiritStones: 300, permBonus: { comprehension: 0.1 } }, condition: (pd) => pd.failedBreakthroughs >= 5 },
@@ -510,7 +565,7 @@ const HERBS = [
       effect: '传说修为', cultivation: 1200 },
 ];
 
-// 境界剧情数据
+// 境界剧情数据 — 12章对应12大境界
 const REALM_STORIES = [
     {
         realmId: 1, icon: '🌬️', title: '第一章: 炼气入体',
@@ -549,8 +604,64 @@ const REALM_STORIES = [
         subtitle: '化神境',
         desc: '超脱凡尘,羽化成仙',
         story: '元婴境的巅峰,你感到体内元婴与肉身已融为一体。但要真正超脱,还差最后一步——化神。\n\n"化神,是让元婴彻底融入天地大道,感知天地法则,借天地之力为己用。化神之后,便是真正的仙人。"\n\n你登上九天之巅,借九天雷霆之力洗涤自身。在雷劫的洗礼下,元婴与肉身彻底融合,化为一道璀璨的光芒直冲云霄。\n\n当光芒散去,你悬浮于九天之上,俯视着脚下的山河大地。化神境——你终于超脱了凡尘,成为了真正的仙人。',
-        progressHint: '恭喜你,已成为真正的仙人!',
+        progressHint: '修为达到500000即可突破至炼虚境',
         unlockCultivation: 100000
+    },
+    {
+        realmId: 6, icon: '🌀', title: '第六章: 炼虚通玄',
+        subtitle: '炼虚境',
+        desc: '炼化天地虚空',
+        story: '化神境的你已超脱凡尘,但天地间还有更深的奥秘等待探索。炼虚,是将自身神识融入虚空,感知天地间最本源的力量。\n\n你独坐悬崖之巅,神识如潮水般向四周扩散。山川河流、风云雨雪,万事万物在你眼中化为一条条法则之线。你伸出手,虚空在指尖微微扭曲——这就是炼虚的力量。\n\n"虚者,实之对也。能炼虚者,可操控空间,缩地成寸,咫尺天涯。"\n\n你的神识与虚空融为一体,从此天地间再无距离的概念。一步跨出,便是千里之外。炼虚境,你已开始触及天地法则的皮毛。',
+        progressHint: '修为达到2000000即可突破至合体境',
+        unlockCultivation: 500000
+    },
+    {
+        realmId: 7, icon: '🌟', title: '第七章: 合体归一',
+        subtitle: '合体境',
+        desc: '神体合而为一',
+        story: '炼虚境的修为已让你站在修仙界的高处,但你知道,还有更高的山峰等待攀登。合体,是将肉身、元婴、神识三者彻底融为一体,达到"三位一体"的完美境界。\n\n你闭关于一处上古秘境,引导天地灵气灌体。肉身在灵气的洗礼下不断蜕变,元婴逐渐与肉身重叠,神识渗透进每一寸肌肤、每一滴血液。\n\n"合体者,身即是神,神即是身。一念一动,皆可引动天地之力。"\n\n当三者彻底融合的那一刻,你感到前所未有的完整。你的身体就是最强的法宝,你的神识就是最锐利的剑刃。合体境,你已站在凡间修士的顶端。',
+        progressHint: '修为达到8000000即可突破至大乘境',
+        unlockCultivation: 2000000
+    },
+    {
+        realmId: 8, icon: '⚡', title: '第八章: 大乘圆满',
+        subtitle: '大乘境',
+        desc: '大道将至圆满',
+        story: '合体境的你已是凡间顶尖强者,但大道未尽。大乘,意味着修行即将圆满,距离飞升仙界只差临门一脚。\n\n"大乘者,大道将成。此时修行已非修炼灵气,而是感悟天地大道,积累飞升之力。"\n\n你云游四海,遍访名山大川。每一处古战场、每一座仙遗迹,都给你新的感悟。你开始理解生死轮回、因果报应的深层含义。天地间的法则在你眼中不再是冰冷的线条,而是有温度的生命脉动。\n\n大乘圆满之时,你感到体内积蓄了一股足以撕裂天地的力量。那是飞升的前兆,是仙界在向你招手。',
+        progressHint: '修为达到30000000即可尝试渡劫',
+        unlockCultivation: 8000000
+    },
+    {
+        realmId: 9, icon: '🌩️', title: '第九章: 九重雷劫',
+        subtitle: '渡劫境',
+        desc: '以肉身硬抗天劫',
+        story: '大乘圆满,天劫降临。这是修仙路上最凶险的一关——渡劫。成则飞升仙界,败则形神俱灭。\n\n天空骤然暗沉,乌云翻涌如墨。第一道天雷劈下,你以肉身硬接,浑身经脉震颤。第二道、第三道……每一道都比上一道更猛更烈。你的肉身在雷火中不断崩裂又重组,如同凤凰涅槃。\n\n"天劫者,天道之考验。渡过去,便脱胎换骨;渡不过,则灰飞烟灭。"\n\n当第九道天雷——最恐怖的紫霄神雷落下时,你仰天长啸,以全身修为硬抗。雷光散去,你浑身浴血却依然屹立。渡劫成功!天空中降下金色的飞升之光。',
+        progressHint: '修为达到100000000即可飞升仙界',
+        unlockCultivation: 30000000
+    },
+    {
+        realmId: 10, icon: '✨', title: '第十章: 飞升仙界',
+        subtitle: '飞升境',
+        desc: '破开仙界之门',
+        story: '渡劫成功后,天空中出现了一道金色裂缝——那是仙界之门。但你还需要最后的力量将其推开,这就是飞升境的意义。\n\n你将渡劫时积蓄的天劫之力转化为飞升之力,灌注全身。金色的光芒从你体内爆发,与天空中的裂缝遥相呼应。裂缝越来越大,仙界的气息从中涌出——那是比凡间浓郁百倍的仙灵之气。\n\n"飞升者,脱离凡尘,踏入仙界。从此与天地同寿,与日月同辉。"\n\n你纵身跃入金色裂缝,眼前豁然开朗。仙界的壮丽景象令你震撼——悬浮的仙山、流淌的仙河、飘渺的仙云。你,终于飞升了!',
+        progressHint: '修为达到500000000即可突破至真仙境',
+        unlockCultivation: 100000000
+    },
+    {
+        realmId: 11, icon: '👑', title: '第十一章: 真仙之境',
+        subtitle: '真仙境',
+        desc: '踏入仙界之门',
+        story: '飞升仙界后,你以凡间修为重新适应仙界浓郁的仙灵之气。仙界的规则与凡间截然不同,这里的灵气更加精纯,法则更加完整。你需要将凡间修为转化为仙力,才能真正立足。\n\n你寻得一处仙山闭关,引导仙灵之气改造经脉。凡间的灵气如同溪流,而仙灵之气则如江河。你的身体在仙气的洗礼下不断蜕变,金丹化为仙丹,元婴化为仙魂。\n\n"真仙者,仙道入门。从此寿元无穷,与天地同在。"\n\n当最后一丝凡间灵气转化为仙力时,你睁开双眼,眼中闪过一道仙光。真仙境,你正式成为仙界的一员,从此寿元无尽,逍遥天地。',
+        progressHint: '修为达到2000000000即可突破至金仙境',
+        unlockCultivation: 500000000
+    },
+    {
+        realmId: 12, icon: '🔥', title: '第十二章: 金仙大圆满',
+        subtitle: '金仙境',
+        desc: '仙道至高境界',
+        story: '真仙境的你在仙界已算小有所成,但仙道浩瀚如海,你所见不过冰山一角。金仙,是仙道修行中至高无上的境界,代表着修行的终极圆满。\n\n"金仙者,万劫不灭,永恒不朽。一念可生灭世界,一语可扭转乾坤。"\n\n你游历仙界诸天,参悟三千大道。每一颗星辰、每一片星云都给你新的感悟。你的仙力在不断积累,对天地法则的理解愈发深刻。终于,在一个星辰陨落与新生的瞬间,你悟透了大道的本质——道生一,一生二,二生三,三生万物。\n\n你的身体绽放出金色的不朽之光,整个仙界都在为你颤抖。金仙大圆满,你已站在了修行之路的巅峰,成为了传说中的存在。',
+        progressHint: '恭喜你,已达修仙之巅!',
+        unlockCultivation: 2000000000
     }
 ];
 
@@ -758,6 +869,9 @@ function loadGame() {
         if (playerData.achievementBonuses.comprehension === undefined) playerData.achievementBonuses.comprehension = 0;
         // 确保 stats 有完整字段
         if (playerData.stats.alchemySuccess === undefined) playerData.stats.alchemySuccess = 0;
+        // 存档兼容：老存档 realm 1-5 不受影响，新境界 6-12 自然支持
+        // 确保 stats 有 totalSpiritStones 字段
+        if (playerData.stats.totalSpiritStones === undefined) playerData.stats.totalSpiritStones = 0;
     }
 }
 
