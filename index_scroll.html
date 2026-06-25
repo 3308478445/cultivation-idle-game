@@ -283,10 +283,71 @@ body::before {
     .encounter-card { margin:18px 10px; padding:16px; }
     .cultivate-section { padding:16px 12px; }
 }
+
+/* ===== 开篇章节 ===== */
+.opening {
+    position:fixed; inset:0; z-index:1000;
+    background:#000;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    padding:60px 30px; text-align:center;
+    transition:opacity 1.2s ease, visibility 1.2s ease;
+}
+.opening.fade-out { opacity:0; visibility:hidden; }
+.opening .ink {
+    font-family:'STKaiti','KaiTi','楷体',serif;
+    color:#f0ebe0; font-size:18px; line-height:2.4;
+    letter-spacing:2px;
+    max-width:380px;
+    min-height:200px;
+    white-space:pre-wrap;
+    text-shadow:0 0 20px rgba(240,235,224,0.15);
+}
+.opening .ink .char {
+    opacity:0; display:inline-block;
+    animation:charIn 0.5s forwards;
+}
+.opening .hint {
+    position:absolute; bottom:40px; left:50%;
+    transform:translateX(-50%);
+    color:rgba(240,235,224,0.3); font-size:12px;
+    letter-spacing:6px;
+    animation:blink 2s infinite;
+}
+.opening.skip-hint {
+    position:absolute; top:20px; right:20px;
+    color:rgba(240,235,224,0.25); font-size:11px;
+    cursor:pointer; padding:6px 12px;
+    border:1px solid rgba(240,235,224,0.1); border-radius:12px;
+}
+@keyframes charIn {
+    from { opacity:0; transform:translateY(8px); filter:blur(4px); }
+    to { opacity:1; transform:translateY(0); filter:blur(0); }
+}
+@keyframes blink {
+    0%,100% { opacity:0.2; }
+    50% { opacity:0.6; }
+}
+
+/* 黑屏过渡 */
+.blackout {
+    position:fixed; inset:0; z-index:999;
+    background:#000;
+    opacity:0; pointer-events:none;
+    transition:opacity 0.8s ease;
+}
+.blackout.show { opacity:1; }
 </style>
 </head>
 <body>
-<div class="app">
+<!-- 开篇章节 -->
+<div class="opening" id="opening">
+    <div class="skip-hint" onclick="skipOpening()">跳过 ›</div>
+    <div class="ink" id="openingInk"></div>
+    <div class="hint">· · ·</div>
+</div>
+<div class="blackout" id="blackout"></div>
+<div class="app" id="app" style="display:none;">
     <!-- 顶栏 -->
     <div class="top-bar">
         <div class="top-realm">
@@ -826,6 +887,68 @@ function gameLoop() {
     save();
 }
 
+// ==================== 开篇章节 ====================
+const OPENING_TEXT = `灵根初开，浊气未除。
+为师传你吐纳之法，
+望你自今日起，褪去凡胎。
+炼气九层，
+一层一重天。
+一层一蜕变。
+一境一新生。
+你，准备好了么？`;
+
+let openingChars = [];
+let openingIdx = 0;
+let openingTimer = null;
+
+function startOpening() {
+    const el = document.getElementById('openingInk');
+    el.innerHTML = '';
+    // 每个字包成 <span class="char">
+    OPENING_TEXT.split('').forEach((ch, i) => {
+        const span = document.createElement('span');
+        span.className = 'char';
+        span.style.animationDelay = (i * 0.18) + 's';
+        if (ch === '\n') {
+            span.innerHTML = '<br>';
+        } else {
+            span.textContent = ch;
+        }
+        el.appendChild(span);
+    });
+    openingIdx = 0;
+    // 文本显示完 1.5s 后开始转场
+    const totalChars = OPENING_TEXT.replace(/\n/g, '').length;
+    const totalMs = totalChars * 180 + 1500;
+    openingTimer = setTimeout(goToGame, totalMs);
+}
+
+function skipOpening() {
+    if (openingTimer) clearTimeout(openingTimer);
+    goToGame();
+}
+
+function goToGame() {
+    const opening = document.getElementById('opening');
+    const blackout = document.getElementById('blackout');
+    const app = document.getElementById('app');
+    // 1. 开篇淡出
+    opening.classList.add('fade-out');
+    // 2. 黑屏出现
+    setTimeout(() => {
+        blackout.classList.add('show');
+        // 3. 隐藏开篇,显示游戏
+        setTimeout(() => {
+            opening.style.display = 'none';
+            app.style.display = 'block';
+            // 4. 黑屏淡出
+            setTimeout(() => {
+                blackout.classList.remove('show');
+            }, 100);
+        }, 800);
+    }, 1200);
+}
+
 // ==================== 启动 ====================
 function init() {
     load();
@@ -844,17 +967,37 @@ function init() {
     updateCultivateSection();
 }
 
-init();
-setInterval(gameLoop, 1000);
-
-// 初始叙事
-if (player.realm === 1) {
-    document.getElementById('narrativeZone').innerHTML = `
-        <div class="narrative fresh">
-            你睁开眼，发现自己躺在清虚观的后山。<br>
-            体内一丝若有若无的灵力在经脉中流淌。<br>
-            师尊说：<em style="color:var(--jade);">"静心吐纳，天地灵气自会入体。"</em>
-        </div>`;
+// 如果是老存档,跳过开篇直接进入游戏
+const hasSave = !!localStorage.getItem('scroll_cultivation');
+if (hasSave) {
+    document.getElementById('opening').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    init();
+    setInterval(gameLoop, 1000);
+    if (player.realm === 1) {
+        document.getElementById('narrativeZone').innerHTML = `
+            <div class="narrative fresh">
+                你睁开眼，发现自己躺在清虚观的后山。<br>
+                体内一丝若有若无的灵力在经脉中流淌。<br>
+                师尊说：<em style="color:var(--jade);">"静心吐纳，天地灵气自会入体。"</em>
+            </div>`;
+    }
+} else {
+    // 新玩家:显示开篇
+    startOpening();
+    // 开篇期间 init 不跑,等转场后启动
+    setTimeout(() => {
+        init();
+        setInterval(gameLoop, 1000);
+    }, 2000);
+    setTimeout(() => {
+        document.getElementById('narrativeZone').innerHTML = `
+            <div class="narrative fresh">
+                你睁开眼，发现自己躺在清虚观的后山。<br>
+                体内一丝若有若无的灵力在经脉中流淌。<br>
+                师尊说：<em style="color:var(--jade);">"静心吐纳，天地灵气自会入体。"</em>
+            </div>`;
+    }, 2500);
 }
 </script>
 </body>
