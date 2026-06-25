@@ -293,7 +293,10 @@ body::before {
             <div class="badge" id="topBadge">⚗</div>
             <span id="topRealm">炼气境</span>
         </div>
-        <div class="top-stones"><span class="icon">💎</span><span id="topStones">0</span></div>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <button id="resetBtn" onclick="resetGame()" style="background:none;border:1px solid rgba(255,255,255,0.1);color:var(--paper-dim);font-size:11px;padding:3px 10px;border-radius:10px;cursor:pointer;font-family:inherit;">重开</button>
+            <div class="top-stones"><span class="icon">💎</span><span id="topStones">0</span></div>
+        </div>
     </div>
 
     <!-- 提示 -->
@@ -439,6 +442,11 @@ function load() {
             player = { ...player, ...saved };
         } catch(e) {}
     }
+}
+function resetGame() {
+    if (!confirm('确定要重新开始吗？所有进度将丢失。')) return;
+    localStorage.removeItem('scroll_cultivation');
+    location.reload();
 }
 
 // ==================== 工具 ====================
