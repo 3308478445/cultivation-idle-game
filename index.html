@@ -669,14 +669,10 @@ function renderShop() {
     container.innerHTML = html || '<div style="text-align:center;color:var(--mist);padding:16px;">暂无货品</div>';
 }
 function updateSystems() {
-    // 解锁系统
-    const unlockMap = { 2:'skillsSection', 3:'pillsSection', 3:'shopSection' };
-    // skills unlock at realm 2
-    if (player.realm >= 2) document.getElementById('skillsSection').classList.add('unlocked');
-    if (player.realm >= 3) {
-        document.getElementById('pillsSection').classList.add('unlocked');
-        document.getElementById('shopSection').classList.add('unlocked');
-    }
+    // 炼气期全部默认解锁，让玩家始终有可玩内容
+    document.getElementById('skillsSection').classList.add('unlocked');
+    document.getElementById('pillsSection').classList.add('unlocked');
+    document.getElementById('shopSection').classList.add('unlocked');
 }
 function updateAll() {
     updateTopBar();
@@ -954,14 +950,10 @@ function init() {
     load();
     updateAll();
 
-    // 初始状态：如果老玩家，根据境界解锁
-    if (player.realm >= 2) {
-        document.getElementById('skillsSection').classList.add('unlocked');
-    }
-    if (player.realm >= 3) {
-        document.getElementById('pillsSection').classList.add('unlocked');
-        document.getElementById('shopSection').classList.add('unlocked');
-    }
+    // 炼气期就解锁全部系统,让玩家始终有可玩内容
+    document.getElementById('skillsSection').classList.add('unlocked');
+    document.getElementById('pillsSection').classList.add('unlocked');
+    document.getElementById('shopSection').classList.add('unlocked');
 
     // 刷新修炼区
     updateCultivateSection();
